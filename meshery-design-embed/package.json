@@ -35,6 +35,6 @@
         "eslint-plugin-react-refresh": "^0.4.5",
         "react": ">=17.0.2",
         "react-dom": ">=17.0.2",
-        "vite": "^5.4.21"
+        "vite": "^7.3.1"
     }
 }
