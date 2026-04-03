@@ -43,6 +43,23 @@ on:
         required: true
         
 jobs:
+  set-pending-status:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Set pending commit status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: 'layer5io',
+              repo: 'meshery-cloud',
+              sha: '${{ inputs.pr_commit_sha }}',
+              state: 'pending',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: 'Cloud build and tests in progress...',
+              context: 'Meshery Cloud Build'
+            });
   comment-starting-point:
     runs-on: ubuntu-24.04
     env:
@@ -149,6 +166,10 @@ jobs:
         uses: ./.github/actions/cloud-comment
         with:
           message: ":x: Failed to install Cloud UI dependencies."
+
+      - name: Install ts-node for Jest TypeScript config
+        working-directory: meshery-cloud/ui
+        run: npm install --save-dev ts-node
 
       - name: Run Cloud UI tests
         working-directory: meshery-cloud
@@ -289,9 +310,36 @@ jobs:
         with:
           message: |
             :x: Failed to deploy staging on OCI OKE
-            
+
             **Deployment Script Output:**
             ```
             ${{ steps.deploy.outputs.stdout }}
             ${{ steps.deploy.outputs.stderr }}
             ```
+  set-final-status:
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [build-meshery-cloud]
+    steps:
+      - name: Set final commit status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          script: |
+            const buildResult = '${{ needs.build-meshery-cloud.result }}';
+            const state = buildResult === 'success' ? 'success' : 'failure';
+            const descriptions = {
+              success: 'Cloud build and tests passed',
+              failure: 'Cloud build and tests failed',
+              cancelled: 'Cloud build was cancelled',
+              skipped: 'Cloud build was skipped',
+            };
+            await github.rest.repos.createCommitStatus({
+              owner: 'layer5io',
+              repo: 'meshery-cloud',
+              sha: '${{ inputs.pr_commit_sha }}',
+              state,
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: descriptions[buildResult] || descriptions.failure,
+              context: 'Meshery Cloud Build'
+            });
