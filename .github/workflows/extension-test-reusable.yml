@@ -416,9 +416,12 @@ jobs:
         if: ${{ !cancelled() && inputs.pr_number == '' }}
         run: |
           mkdir -p merged-allure-results
-          # Each shard has its own allure-results directory; copy everything
-          # into a single merged directory so the QA sync sees the full run.
-          for dir in shard-artifacts/playwright-artifacts-shard-*/allure-results; do
+          # Each shard may download with the original uploaded path preserved.
+          # Support both the nested artifact layout and the direct-root layout
+          # so the QA sync sees the full run without changing upload behavior.
+          for dir in \
+            shard-artifacts/playwright-artifacts-shard-*/meshery-extensions/tests/allure-results \
+            shard-artifacts/playwright-artifacts-shard-*/allure-results; do
             [ -d "$dir" ] || continue
             cp -R "$dir/." merged-allure-results/
           done
