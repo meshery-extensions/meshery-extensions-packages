@@ -308,11 +308,17 @@ jobs:
     if: ${{ always() && needs.tests-ui-e2e.result != 'skipped' }}
     runs-on: ubuntu-24.04
     steps:
-      - name: Download all shard artifacts
+      - name: Download Playwright shard artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: playwright-artifacts-shard-*
           path: shard-artifacts
 
+      - name: Download shard outcome artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: shard-outcome-*
+          path: shard-artifacts
       - name: Aggregate shard outcomes
         id: aggregate
         run: |
