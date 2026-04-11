@@ -118,8 +118,18 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
+    # Expose the matrix size so the non-matrix summary job can report the
+    # configured shard count even if some shards never produced an outcome
+    # marker (runner crash, timeout, cancelled artifact upload). Every shard
+    # writes the same value; GitHub collects whichever one lands.
+    outputs:
+      shard_count: ${{ steps.shard_meta.outputs.shard_count }}
 
     steps:
+      - name: Record shard count
+        id: shard_meta
+        run: echo "shard_count=${{ strategy.job-total }}" >> "$GITHUB_OUTPUT"
+
       - name: comment progress start
         if: ${{ inputs.pr_number != '' && matrix.shard == 1 }}
         uses: hasura/comment-progress@v2.3.0
@@ -399,7 +409,7 @@ jobs:
           message: |
             ### Test Results
 
-            **Meshery:** `stable-latest` | **Shards:** ${{ steps.aggregate.outputs.count }} | **Overall:** ${{ steps.aggregate.outputs.overall }}
+            **Meshery:** `stable-latest` | **Shards:** ${{ needs.tests-ui-e2e.outputs.shard_count != '' && needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }} | **Overall:** ${{ steps.aggregate.outputs.overall }}
 
             ${{ steps.test_reports.outputs.result }}
 
@@ -483,7 +493,7 @@ jobs:
             const stateMap = { success: 'success', failure: 'failure', cancelled: 'error' };
             const state = stateMap[outcome] || 'error';
             const descMap = {
-              success: 'All tests passed across ${{ steps.aggregate.outputs.count }} shards',
+              success: 'All tests passed across ${{ needs.tests-ui-e2e.outputs.shard_count != '' && needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }} shards',
               failure: 'One or more tests failed',
               cancelled: 'Run was cancelled',
             };
