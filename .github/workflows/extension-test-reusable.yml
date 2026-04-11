@@ -128,7 +128,7 @@ jobs:
           repository: layer5labs/meshery-extensions
           number: ${{ inputs.pr_number }}
           id: extension-test
-          message: ":heavy_check_mark: Setting up test environment (sharded 1/4..4/4)..."
+          message: ":heavy_check_mark: Setting up test environment (sharded across ${{ strategy.job-total }} runners)..."
           append: true
       - name: Set pending commit status
         if: ${{ inputs.head_sha != '' && matrix.shard == 1 }}
@@ -143,7 +143,7 @@ jobs:
               sha: '${{ inputs.head_sha }}',
               state: 'pending',
               context: 'Meshery Extension E2E Tests',
-              description: 'Tests are running (4 shards)...',
+              description: 'Tests are running (${{ strategy.job-total }} shards)...',
               target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
@@ -344,6 +344,9 @@ jobs:
             fi
           done
           echo "overall=$overall" >> "$GITHUB_OUTPUT"
+          # Derive shard count from actual runtime data so user-facing messages
+          # stay in sync with the matrix definition without a second source of truth.
+          echo "count=${#shard_outcome_files[@]}" >> "$GITHUB_OUTPUT"
 
       - name: Collect per-shard reports
         id: test_reports
@@ -396,7 +399,7 @@ jobs:
           message: |
             ### Test Results
 
-            **Meshery:** `stable-latest` | **Shards:** 4 | **Overall:** ${{ steps.aggregate.outputs.overall }}
+            **Meshery:** `stable-latest` | **Shards:** ${{ steps.aggregate.outputs.count }} | **Overall:** ${{ steps.aggregate.outputs.overall }}
 
             ${{ steps.test_reports.outputs.result }}
 
@@ -480,7 +483,7 @@ jobs:
             const stateMap = { success: 'success', failure: 'failure', cancelled: 'error' };
             const state = stateMap[outcome] || 'error';
             const descMap = {
-              success: 'All tests passed across 4 shards',
+              success: 'All tests passed across ${{ steps.aggregate.outputs.count }} shards',
               failure: 'One or more tests failed',
               cancelled: 'Run was cancelled',
             };
