@@ -18,7 +18,7 @@ function App() {
       <MesheryDesignEmbed
           embedScriptSrc="embedded-design-embed1.js"
           embedId={embeddedId}
-          showLogo={false}
+          showLogo={true}
       />
     </>
   );
