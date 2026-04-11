@@ -325,18 +325,22 @@ jobs:
         id: aggregate
         run: |
           set -euo pipefail
+          shopt -s nullglob
           # Glob through every shard-outcome-*/shard-*.txt marker the matrix produced.
           # If any shard reported failure, overall outcome is failure.
+          shard_outcome_files=(shard-artifacts/shard-outcome-*/shard-*.txt)
+          if [ "${#shard_outcome_files[@]}" -eq 0 ]; then
+            echo "No shard outcome markers were found in shard-artifacts." >&2
+            exit 1
+          fi
           overall="success"
-          for f in shard-artifacts/shard-outcome-*/shard-*.txt; do
-            if [ -f "$f" ]; then
-              outcome=$(cat "$f")
-              echo "Shard $(basename "$f" .txt) outcome: $outcome"
-              if [ "$outcome" = "failure" ]; then
-                overall="failure"
-              elif [ "$outcome" = "cancelled" ] && [ "$overall" = "success" ]; then
-                overall="cancelled"
-              fi
+          for f in "${shard_outcome_files[@]}"; do
+            outcome=$(cat "$f")
+            echo "Shard $(basename "$f" .txt) outcome: $outcome"
+            if [ "$outcome" = "failure" ]; then
+              overall="failure"
+            elif [ "$outcome" = "cancelled" ] && [ "$overall" = "success" ]; then
+              overall="cancelled"
             fi
           done
           echo "overall=$overall" >> "$GITHUB_OUTPUT"
