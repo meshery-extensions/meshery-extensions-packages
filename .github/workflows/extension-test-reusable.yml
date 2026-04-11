@@ -350,8 +350,13 @@ jobs:
             for dir in shard-artifacts/playwright-artifacts-shard-*; do
               [ -d "$dir" ] || continue
               shard=$(basename "$dir" | sed 's/playwright-artifacts-shard-//')
-              report="$dir/test-results/test-report.md"
-              if [ -f "$report" ]; then
+              report=""
+              if [ -f "$dir/test-results/test-report.md" ]; then
+                report="$dir/test-results/test-report.md"
+              elif [ -f "$dir/meshery-extensions/tests/test-results/test-report.md" ]; then
+                report="$dir/meshery-extensions/tests/test-results/test-report.md"
+              fi
+              if [ -n "$report" ] && [ -f "$report" ]; then
                 echo "#### Shard $shard"
                 cat "$report"
                 echo
