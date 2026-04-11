@@ -118,11 +118,6 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
-    outputs:
-      # Not aggregated per-shard — the summary job computes the overall outcome
-      # from its `needs` context. This output stays for backwards compatibility
-      # with any external consumers.
-      test-results: ${{ steps.run_tests.outputs.test-results }}
 
     steps:
       - name: comment progress start
