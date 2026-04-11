@@ -107,24 +107,31 @@ jobs:
 
   tests-ui-e2e:
     needs: build-meshery-extension
-    name: UI end-to-end tests
+    name: UI end-to-end tests (shard ${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-24.04
-    outputs:
-      test-results: ${{ steps.run_tests.outputs.test-results }}
+    # Playwright sharding: split the suite across N runners. Wall-clock reduction
+    # is roughly linear in the shard count; total runner-minutes increase because
+    # each shard re-runs the environment setup (Kind cluster, Docker pull, etc).
+    # Keep fail-fast: false so a failure in shard 1 doesn't cancel shards 2–4
+    # and lose their signal.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
 
     steps:
       - name: comment progress start
-        if: ${{ inputs.pr_number != ''  }}
+        if: ${{ inputs.pr_number != '' && matrix.shard == 1 }}
         uses: hasura/comment-progress@v2.3.0
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
           repository: layer5labs/meshery-extensions
           number: ${{ inputs.pr_number }}
           id: extension-test
-          message: ":heavy_check_mark: Setting up test environment..."
+          message: ":heavy_check_mark: Setting up test environment (sharded 1/4..4/4)..."
           append: true
       - name: Set pending commit status
-        if: ${{ inputs.head_sha != '' }}
+        if: ${{ inputs.head_sha != '' && matrix.shard == 1 }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -136,7 +143,7 @@ jobs:
               sha: '${{ inputs.head_sha }}',
               state: 'pending',
               context: 'Meshery Extension E2E Tests',
-              description: 'Tests are running...',
+              description: 'Tests are running (4 shards)...',
               target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
@@ -226,28 +233,25 @@ jobs:
             sleep 2
           done
 
-      - name: comment progress ready
-        if: ${{ inputs.pr_number != ''  }}
-        uses: hasura/comment-progress@v2.3.0
-        with:
-          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
-          repository: layer5labs/meshery-extensions
-          number: ${{ inputs.pr_number }}
-          id: extension-test
-          message: ":heavy_check_mark: Test environment ready. Starting tests..."
-          append: true
-
       - name: Record test start time
         id: timer
         run: echo "start=$(date +%s)" >> "$GITHUB_OUTPUT"
 
+      # `make test` in meshery-extensions picks up SHARD=X/N and forwards it
+      # to `npx playwright test --shard=X/N`. If inputs.test_command is set to
+      # a non-default value we still pass it through verbatim to preserve the
+      # existing workflow_dispatch override surface.
       - name: Run Tests
         id: run_tests
         continue-on-error: true
         working-directory: meshery-extensions
         run: |
-          ls 
-          ${{ inputs.test_command }}
+          ls
+          if [ "${{ inputs.test_command }}" = "make test" ]; then
+            make test SHARD=${{ matrix.shard }}/${{ strategy.job-total }}
+          else
+            ${{ inputs.test_command }}
+          fi
         env:
           PROVIDER_TOKEN: ${{ secrets.PROVIDER_TOKEN }}
           MESHERY_SERVER_URL: http://localhost:9081
@@ -264,29 +268,125 @@ jobs:
           elapsed=$(( $(date +%s) - ${{ steps.timer.outputs.start }} ))
           echo "duration=$(printf '%dm %ds' $((elapsed/60)) $((elapsed%60)))" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare test report
-        id: test_reports
-        working-directory: meshery-extensions
+      - name: Stage shard artifacts
+        if: ${{ !cancelled() }}
         run: |
-          REPORT="tests/test-results/test-report.md"
+          mkdir -p shard-artifacts
+          for artifact_dir in test-results playwright-report allure-results; do
+            if [ -d "meshery-extensions/tests/${artifact_dir}" ]; then
+              cp -R "meshery-extensions/tests/${artifact_dir}" "shard-artifacts/${artifact_dir}"
+            fi
+          done
 
-          if [ -f "$REPORT" ]; then
-            cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "_No test report found_" >> "$GITHUB_STEP_SUMMARY"
-          fi
+      - name: Upload shard artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-shard-${{ matrix.shard }}
+          path: shard-artifacts/
+          retention-days: 30
 
-          echo "result<<EOF" >> "$GITHUB_OUTPUT"
-          if [ -f "$REPORT" ]; then
-            head -n 100 "$REPORT" >> "$GITHUB_OUTPUT"
-            echo "_(Truncated. Full report in job summary.)_" >> "$GITHUB_OUTPUT"
-          else
-            echo "_No test report found_" >> "$GITHUB_OUTPUT"
+      - name: Upload shard outcome marker
+        if: ${{ always() }}
+        run: |
+          mkdir -p shard-outcome
+          printf '%s' '${{ steps.run_tests.outcome }}' > shard-outcome/shard-${{ matrix.shard }}.txt
+
+      - name: Upload shard outcome artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: shard-outcome-${{ matrix.shard }}
+          path: shard-outcome/
+          retention-days: 1
+
+  # Aggregation job: downloads every shard's artifacts and produces a single
+  # PR comment, commit status, and Allure sync. Runs exactly once regardless of
+  # how many shards the matrix has. `if: always()` ensures it runs even when
+  # one shard fails, so the PR comment reflects the real outcome rather than
+  # getting stuck on the pending status.
+  tests-ui-e2e-summary:
+    needs: tests-ui-e2e
+    if: ${{ always() && needs.tests-ui-e2e.result != 'skipped' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download Playwright shard artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-artifacts-shard-*
+          path: shard-artifacts
+
+      - name: Download shard outcome artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: shard-outcome-*
+          path: shard-artifacts
+      - name: Aggregate shard outcomes
+        id: aggregate
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          # Glob through every shard-outcome-*/shard-*.txt marker the matrix produced.
+          # If any shard reported failure, overall outcome is failure.
+          shard_outcome_files=(shard-artifacts/shard-outcome-*/shard-*.txt)
+          if [ "${#shard_outcome_files[@]}" -eq 0 ]; then
+            echo "No shard outcome markers were found in shard-artifacts." >&2
+            exit 1
           fi
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          overall="success"
+          for f in "${shard_outcome_files[@]}"; do
+            outcome=$(cat "$f")
+            echo "Shard $(basename "$f" .txt) outcome: $outcome"
+            if [ "$outcome" = "failure" ]; then
+              overall="failure"
+            elif [ "$outcome" = "cancelled" ] && [ "$overall" = "success" ]; then
+              overall="cancelled"
+            fi
+          done
+          echo "overall=$overall" >> "$GITHUB_OUTPUT"
+
+      - name: Collect per-shard reports
+        id: test_reports
+        run: |
+          set -euo pipefail
+          mkdir -p aggregated
+          # Each shard writes its own tests/test-results/test-report.md; concatenate
+          # them with shard headers so the PR comment covers the full suite.
+          {
+            for dir in shard-artifacts/playwright-artifacts-shard-*; do
+              [ -d "$dir" ] || continue
+              shard=$(basename "$dir" | sed 's/playwright-artifacts-shard-//')
+              report=""
+              if [ -f "$dir/test-results/test-report.md" ]; then
+                report="$dir/test-results/test-report.md"
+              elif [ -f "$dir/meshery-extensions/tests/test-results/test-report.md" ]; then
+                report="$dir/meshery-extensions/tests/test-results/test-report.md"
+              fi
+              if [ -n "$report" ] && [ -f "$report" ]; then
+                echo "#### Shard $shard"
+                cat "$report"
+                echo
+              else
+                echo "#### Shard $shard"
+                echo "_No test report found_"
+                echo
+              fi
+            done
+          } > aggregated/summary.md
+
+          cat aggregated/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+          {
+            echo "result<<EOF"
+            head -n 200 aggregated/summary.md
+            if [ "$(wc -l < aggregated/summary.md)" -gt 200 ]; then
+              echo "_(Truncated. Full report in job summary.)_"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: comment the summary
-        if: ${{ always() && inputs.pr_number != ''  }}
+        if: ${{ inputs.pr_number != '' }}
         uses: hasura/comment-progress@v2.3.0
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -296,7 +396,7 @@ jobs:
           message: |
             ### Test Results
 
-            **Extension tag:** `${{ env.tag }}` | **Meshery:** `stable-latest` | **Duration:** ${{ steps.duration.outputs.duration }}
+            **Meshery:** `stable-latest` | **Shards:** 4 | **Overall:** ${{ steps.aggregate.outputs.overall }}
 
             ${{ steps.test_reports.outputs.result }}
 
@@ -304,24 +404,38 @@ jobs:
           append: true
 
       - name: Checkout QA
-        if: ${{ !cancelled() && inputs.pr_number == ''  }}
+        if: ${{ !cancelled() && inputs.pr_number == '' }}
         uses: actions/checkout@v6
         with:
           repository: meshery-extensions/qa
           path: qa
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
+      - name: Merge Allure results across shards
+        if: ${{ !cancelled() && inputs.pr_number == '' }}
+        run: |
+          mkdir -p merged-allure-results
+          # Each shard may download with the original uploaded path preserved.
+          # Support both the nested artifact layout and the direct-root layout
+          # so the QA sync sees the full run without changing upload behavior.
+          for dir in \
+            shard-artifacts/playwright-artifacts-shard-*/meshery-extensions/tests/allure-results \
+            shard-artifacts/playwright-artifacts-shard-*/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." merged-allure-results/
+          done
+
       - name: Sync results with qa
-        if: ${{ !cancelled() && inputs.pr_number == ''  }}
+        if: ${{ !cancelled() && inputs.pr_number == '' }}
         working-directory: qa
         run: |
-          ls .. 
-          echo "ls meshery-extensions"
-          ls ../meshery-extensions
-          make results-kanvas-sync KANVAS_RESULTS_PATH=../meshery-extensions/tests/allure-results
+          ls ..
+          echo "ls merged-allure-results"
+          ls ../merged-allure-results || true
+          make results-kanvas-sync KANVAS_RESULTS_PATH=../merged-allure-results
 
       - name: Commit & push results to qa
-        if: ${{ !cancelled() && inputs.pr_number == ''  }}
+        if: ${{ !cancelled() && inputs.pr_number == '' }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "[Kanvas] Sync Kanvas E2E Test Results - ${GITHUB_SHA}"
@@ -333,18 +447,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
-      - name: Upload test artifacts
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-artifacts
-          path: |
-            meshery-extensions/tests/test-results
-            meshery-extensions/tests/playwright-report
-          retention-days: 30
-
       - name: Comment Test failure
-        if: ${{ failure() && inputs.pr_number != ''  }}
+        if: ${{ inputs.pr_number != '' && steps.aggregate.outputs.overall == 'failure' }}
         uses: hasura/comment-progress@v2.3.0
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -355,7 +459,7 @@ jobs:
           append: true
 
       - name: Comment Final Status
-        if: ${{ always() && inputs.pr_number != ''  }}
+        if: ${{ inputs.pr_number != '' }}
         uses: hasura/comment-progress@v2.3.0
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -364,17 +468,22 @@ jobs:
           id: extension-test
           message: ":heavy_check_mark: Meshery Extension tests completed."
           append: true
+
       - name: Set final commit status
-        if: ${{ always() && inputs.head_sha != '' }}
+        if: ${{ inputs.head_sha != '' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
           script: |
             const [owner, repo] = 'layer5labs/meshery-extensions'.split('/');
-            const outcome = '${{ steps.run_tests.outcome }}';
-            const stateMap = { success: 'success', failure: 'failure', cancelled: 'error', skipped: 'error' };
+            const outcome = '${{ steps.aggregate.outputs.overall }}';
+            const stateMap = { success: 'success', failure: 'failure', cancelled: 'error' };
             const state = stateMap[outcome] || 'error';
-            const descMap = { success: 'All tests passed', failure: 'One or more tests failed', cancelled: 'Run was cancelled', skipped: 'Tests were skipped' };
+            const descMap = {
+              success: 'All tests passed across 4 shards',
+              failure: 'One or more tests failed',
+              cancelled: 'Run was cancelled',
+            };
             await github.rest.repos.createCommitStatus({
               owner,
               repo,
