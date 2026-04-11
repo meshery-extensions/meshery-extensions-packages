@@ -273,15 +273,22 @@ jobs:
           elapsed=$(( $(date +%s) - ${{ steps.timer.outputs.start }} ))
           echo "duration=$(printf '%dm %ds' $((elapsed/60)) $((elapsed%60)))" >> "$GITHUB_OUTPUT"
 
+      - name: Stage shard artifacts
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p shard-artifacts
+          for artifact_dir in test-results playwright-report allure-results; do
+            if [ -d "meshery-extensions/tests/${artifact_dir}" ]; then
+              cp -R "meshery-extensions/tests/${artifact_dir}" "shard-artifacts/${artifact_dir}"
+            fi
+          done
+
       - name: Upload shard artifacts
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-artifacts-shard-${{ matrix.shard }}
-          path: |
-            meshery-extensions/tests/test-results
-            meshery-extensions/tests/playwright-report
-            meshery-extensions/tests/allure-results
+          path: shard-artifacts/
           retention-days: 30
 
       - name: Upload shard outcome marker
