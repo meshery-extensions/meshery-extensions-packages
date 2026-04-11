@@ -69,6 +69,7 @@ const MesheryDesignEmbed = ({
   embedScriptSrc,
   embedId,
   style = {},
+  showLogo = true,
 }) => {
   useScript(embedScriptSrc, embedId);
 
@@ -87,7 +88,7 @@ const MesheryDesignEmbed = ({
       <div id={embedId} style={{ width: "100%", height: "100%" }}></div>
       
       {/* Custom React Component Toolbar */}
-      <CustomMesheryToolbar embedId={embedId} />
+      {showLogo && <CustomMesheryToolbar embedId={embedId} />}
     </div>
   );
 };
