@@ -354,8 +354,10 @@ jobs:
             fi
           done
           echo "overall=$overall" >> "$GITHUB_OUTPUT"
-          # Derive shard count from actual runtime data so user-facing messages
-          # stay in sync with the matrix definition without a second source of truth.
+          # Fallback shard count from the number of outcome markers collected.
+          # The primary source is needs.tests-ui-e2e.outputs.shard_count (from
+          # strategy.job-total); this covers the edge case where that output is
+          # empty (e.g. all matrix legs cancelled before step 1 ran).
           echo "count=${#shard_outcome_files[@]}" >> "$GITHUB_OUTPUT"
 
       - name: Collect per-shard reports
@@ -409,7 +411,7 @@ jobs:
           message: |
             ### Test Results
 
-            **Meshery:** `stable-latest` | **Shards:** ${{ needs.tests-ui-e2e.outputs.shard_count != '' && needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }} | **Overall:** ${{ steps.aggregate.outputs.overall }}
+            **Meshery:** `stable-latest` | **Shards:** ${{ needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }} | **Overall:** ${{ steps.aggregate.outputs.overall }}
 
             ${{ steps.test_reports.outputs.result }}
 
@@ -493,7 +495,7 @@ jobs:
             const stateMap = { success: 'success', failure: 'failure', cancelled: 'error' };
             const state = stateMap[outcome] || 'error';
             const descMap = {
-              success: 'All tests passed across ${{ needs.tests-ui-e2e.outputs.shard_count != '' && needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }} shards',
+              success: 'All tests passed across ${{ needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }} shards',
               failure: 'One or more tests failed',
               cancelled: 'Run was cancelled',
             };
