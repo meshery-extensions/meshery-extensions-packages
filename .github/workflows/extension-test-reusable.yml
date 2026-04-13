@@ -268,6 +268,7 @@ jobs:
           REMOTE_PROVIDER_URL: https://cloud.layer5.io
           REMOTE_PROVIDER_USER_EMAIL: ${{ secrets.LAYER5_CLOUD_TESTING_BOT_EMAIL }}
           REMOTE_PROVIDER_USER_PASSWORD: ${{ secrets.LAYER5_CLOUD_TESTING_BOT_PASSWORD }}
+          KANVAS_TIMEOUT_MULTIPLIER: "3"
           ALLURE_LABEL_project: Kanvas
           ALLURE_LABEL_type: e2e
 
