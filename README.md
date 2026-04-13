@@ -32,6 +32,15 @@
 > git clone --filter=blob:none --sparse https://github.com/layer5labs/meshery-extensions-packages
 > git sparse-checkout add assets
 > ```
+>
+> ```shell
+> git sparse-checkout init --no-cone
+> vi .git/info/sparse-checkout
+> /*
+> !/*/
+> /.github/
+> git sparse-checkout reapply
+> ```
 
 
 ## Repo Overview
