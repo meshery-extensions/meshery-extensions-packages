@@ -296,7 +296,7 @@ jobs:
 
       - name: Upload shard artifacts
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-artifacts-shard-${{ matrix.shard }}
           path: shard-artifacts/
@@ -310,7 +310,7 @@ jobs:
 
       - name: Upload shard outcome artifact
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: shard-outcome-${{ matrix.shard }}
           path: shard-outcome/
@@ -341,12 +341,13 @@ jobs:
         id: aggregate
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          # Glob through every shard-outcome-*/shard-*.txt marker the matrix produced.
-          # If any shard reported failure, overall outcome is failure.
-          shard_outcome_files=(shard-artifacts/shard-outcome-*/shard-*.txt)
+          # Use find to locate shard-*.txt files regardless of artifact extraction layout.
+          # This is robust against variations in how download-artifact arranges directories.
+          mapfile -t shard_outcome_files < <(find shard-artifacts -name "shard-*.txt" -type f 2>/dev/null | sort)
           if [ "${#shard_outcome_files[@]}" -eq 0 ]; then
             echo "No shard outcome markers were found in shard-artifacts." >&2
+            echo "Contents of shard-artifacts:" >&2
+            find shard-artifacts -maxdepth 3 2>/dev/null | head -50 >&2 || true
             exit 1
           fi
           overall="success"
