@@ -139,7 +139,7 @@ jobs:
           repository: layer5labs/meshery-extensions
           number: ${{ inputs.pr_number }}
           id: extension-test
-          message: ":heavy_check_mark: Setting up test environment (sharded across ${{ strategy.job-total }} runners)..."
+          message: ":heavy_check_mark: Setting up test environment (sharded across ${{ strategy.job-total }} ${{ strategy.job-total == 1 && 'runner' || 'runners' }})..."
           append: true
       - name: Set pending commit status
         if: ${{ inputs.head_sha != '' && matrix.shard == 1 }}
@@ -154,7 +154,7 @@ jobs:
               sha: '${{ inputs.head_sha }}',
               state: 'pending',
               context: 'Meshery Extension E2E Tests',
-              description: 'Tests are running (${{ strategy.job-total }} shards)...',
+              description: 'Tests are running (${{ strategy.job-total }} shard${{ strategy.job-total == 1 && '' || 's' }})...',
               target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
@@ -248,10 +248,10 @@ jobs:
         id: timer
         run: echo "start=$(date +%s)" >> "$GITHUB_OUTPUT"
 
-      # `make test` in meshery-extensions picks up SHARD=X/N and forwards it
-      # to `npx playwright test --shard=X/N`. If inputs.test_command is set to
-      # a non-default value we still pass it through verbatim to preserve the
-      # existing workflow_dispatch override surface.
+      # When strategy.job-total > 1, forward SHARD=X/N to playwright so each
+      # runner exercises only its slice of the test suite. With a single runner
+      # the --shard flag is redundant; omitting it avoids shard-metadata
+      # overhead and keeps the run semantically equivalent to a local `make test`.
       - name: Run Tests
         id: run_tests
         continue-on-error: true
@@ -259,7 +259,11 @@ jobs:
         run: |
           ls
           if [ "${{ inputs.test_command }}" = "make test" ]; then
-            make test SHARD=${{ matrix.shard }}/${{ strategy.job-total }}
+            if [ "${{ strategy.job-total }}" -gt 1 ]; then
+              make test SHARD=${{ matrix.shard }}/${{ strategy.job-total }}
+            else
+              make test
+            fi
           else
             ${{ inputs.test_command }}
           fi
@@ -323,13 +327,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Download Playwright shard artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           pattern: playwright-artifacts-shard-*
           path: shard-artifacts
 
       - name: Download shard outcome artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           pattern: shard-outcome-*
           path: shard-artifacts
@@ -496,8 +500,9 @@ jobs:
             const outcome = '${{ steps.aggregate.outputs.overall }}';
             const stateMap = { success: 'success', failure: 'failure', cancelled: 'error' };
             const state = stateMap[outcome] || 'error';
+            const shardCount = parseInt('${{ needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }}') || 1;
             const descMap = {
-              success: 'All tests passed across ${{ needs.tests-ui-e2e.outputs.shard_count || steps.aggregate.outputs.count }} shards',
+              success: `All tests passed (${shardCount} shard${shardCount === 1 ? '' : 's'})`,
               failure: 'One or more tests failed',
               cancelled: 'Run was cancelled',
             };
