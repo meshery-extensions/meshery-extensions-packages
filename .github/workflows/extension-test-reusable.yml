@@ -341,13 +341,17 @@ jobs:
         id: aggregate
         run: |
           set -euo pipefail
+          if [ ! -d shard-artifacts ]; then
+            echo "Expected artifact directory 'shard-artifacts' was not found. Ensure shard artifacts were downloaded and extracted successfully." >&2
+            exit 1
+          fi
           # Use find to locate shard-*.txt files regardless of artifact extraction layout.
           # This is robust against variations in how download-artifact arranges directories.
-          mapfile -t shard_outcome_files < <(find shard-artifacts -name "shard-*.txt" -type f 2>/dev/null | sort)
+          mapfile -t shard_outcome_files < <(find shard-artifacts -name "shard-*.txt" -type f | sort)
           if [ "${#shard_outcome_files[@]}" -eq 0 ]; then
             echo "No shard outcome markers were found in shard-artifacts." >&2
             echo "Contents of shard-artifacts:" >&2
-            find shard-artifacts -maxdepth 3 2>/dev/null | head -50 >&2 || true
+            find shard-artifacts -maxdepth 3 | head -50 >&2 || true
             exit 1
           fi
           overall="success"
