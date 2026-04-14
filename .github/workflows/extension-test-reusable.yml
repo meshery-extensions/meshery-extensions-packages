@@ -117,7 +117,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1]
+        #shard: [1, 2, 3, 4]
     # Expose the matrix size so the non-matrix summary job can report the
     # configured shard count even if some shards never produced an outcome
     # marker (runner crash, timeout, cancelled artifact upload). Every shard
