@@ -185,16 +185,16 @@ jobs:
       # Kind cluster creation and Playwright install (~30-60s saved).
       - name: Pull Meshery image in background
         run: |
-          nohup docker pull docker.io/meshery/meshery:stable-latest > /tmp/docker-pull.log 2>&1 &
+          nohup docker pull docker.io/meshery/meshery:edge-latest > /tmp/docker-pull.log 2>&1 &
           echo $! > /tmp/docker-pull.pid
 
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.13.0
-        with:
-          cluster_name: kind-cluster
+      # - name: Create k8s Kind Cluster
+      #   uses: helm/kind-action@v1.13.0
+      #   with:
+      #     cluster_name: kind-cluster
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('meshery-extensions/package-lock.json') }}
@@ -221,7 +221,7 @@ jobs:
             -e PROVIDER_BASE_URLS=https://cloud.layer5.io \
             -e PORT=9081 \
             -e BUILD=${{ env.tag }} \
-            docker.io/meshery/meshery:stable-latest
+            docker.io/meshery/meshery:edge-latest
 
       - name: Download Meshery-extension-ui artifacts
         uses: actions/download-artifact@v4
@@ -291,7 +291,7 @@ jobs:
 
       - name: Upload shard artifacts
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-artifacts-shard-${{ matrix.shard }}
           path: shard-artifacts/
@@ -305,7 +305,7 @@ jobs:
 
       - name: Upload shard outcome artifact
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: shard-outcome-${{ matrix.shard }}
           path: shard-outcome/
@@ -322,13 +322,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Download Playwright shard artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: playwright-artifacts-shard-*
           path: shard-artifacts
 
       - name: Download shard outcome artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: shard-outcome-*
           path: shard-artifacts
@@ -454,7 +454,7 @@ jobs:
         if: ${{ !cancelled() && inputs.pr_number == '' }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "[Kanvas] Sync Kanvas E2E Test Results - ${GITHUB_SHA}"
+          commit_message: "[Kanvas] Sync E2E Test Results - ${GITHUB_SHA}"
           commit_options: --signoff
           repository: qa
           file_pattern: kanvas-results
