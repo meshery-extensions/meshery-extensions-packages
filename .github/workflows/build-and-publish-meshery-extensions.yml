@@ -1,0 +1,215 @@
+name: Build and Publish
+on:
+  # release:
+  #   types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version of Meshery (e.g. v0.0.0)"
+        required: false
+      revision:
+        description: "Extension Sub Version (e.g. 1)"
+        required: false
+
+env:
+  MESHERY_EXTENSIONS_PATH: ${{ github.workspace }}/meshery-extensions
+
+jobs:
+  release-extensions:
+    name: Build Meshery Extensions
+    runs-on: "ubuntu-24.04"
+    outputs:
+      revision: ${{ steps.fetch-versions.outputs.REVISION }}
+    steps:
+      - name: Checkout layer5labs/meshery-extensions
+        uses: actions/checkout@v6
+        with:
+          repository: layer5labs/meshery-extensions
+          path: meshery-extensions
+      - name: Disable Source Map Warnings
+        run: |
+          echo 'DISABLE_SOURCEMAP_WARNINGS=true' >> $GITHUB_ENV
+      - name: Increase Asset Size Limit
+        run: |
+          echo 'ASSET_SIZE_LIMIT=512000' >> $GITHUB_ENV
+      - name: Get latest version from meshery and meshery-extensions-package
+        working-directory: ${{ env.MESHERY_EXTENSIONS_PATH }}
+        id: fetch-versions
+        run: |
+          export $(make -f Makefile meshery_version)
+          export $(make -f Makefile extension_version)
+          export $(make -f Makefile extension_revision)
+
+          LATEST_RELEASE=$EXTENSION_VERSION
+          echo "init MESHERY_VERSION=$MESHERY_VERSION"
+          echo "init EXTENSION_VERSION=$EXTENSION_VERSION"
+          BASE_LATEST_RELEASE=$(echo $LATEST_RELEASE | sed -E 's/-([0-9]+)$//')
+          EXTENSION_VERSION=$(echo $LATEST_RELEASE | sed -E 's/^.*-([0-9]+)$/\1/; t; s/.*/0/')
+          if [[ $MESHERY_VERSION == $BASE_LATEST_RELEASE ]]; then
+            EXTENSION_VERSION=$((EXTENSION_VERSION+1))
+          else
+            EXTENSION_VERSION="1"
+          fi
+          echo "MESHERY_VERSION=$MESHERY_VERSION" >> $GITHUB_ENV
+          echo "EXTENSION_VERSION=$EXTENSION_VERSION" >> $GITHUB_ENV
+          export VERSION=$MESHERY_VERSION-$EXTENSION_VERSION
+          echo "REVISION=$EXTENSION_REVISION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          echo "Final MESHERY_VERSION=$MESHERY_VERSION"
+          echo "Final BASE_LATEST_RELEASE=$BASE_LATEST_RELEASE"
+          echo "Final EXTENSION_VERSION=$EXTENSION_VERSION"
+          echo "Final EXTENSION_REVISION=$EXTENSION_REVISION" >> $GITHUB_ENV
+          echo "Final VERSION=$VERSION"
+      - name: Override version and revision, if provided
+        if: ${{ inputs.version }}
+        run: |
+          echo Using manually dispatch values of ${{ inputs.version }} and ${{ inputs.revision }}
+          echo "MESHERY_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+          echo "EXTENSION_VERSION=${{ inputs.revision }}" >> $GITHUB_ENV
+          echo "VERSION=${{ inputs.version }}-${{ inputs.revision }}" >> $GITHUB_ENV
+      - name: Checkout meshery/meshery to sync go.mod
+        uses: actions/checkout@v6
+        with:
+          repository: meshery/meshery
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          path: meshery
+          ref: ${{ env.MESHERY_VERSION }}
+          sparse-checkout: |
+            /*
+            /**/*
+            !/docs
+            !/docs/**
+            !/server/meshmodel
+            !/server/meshmodel/**
+          sparse-checkout-cone-mode: false
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+          cache: false
+      - name: Sync graphql go.mod with Meshery ${{ env.MESHERY_VERSION }}
+        if: ${{ !failure() }}
+        working-directory: ${{ env.MESHERY_EXTENSIONS_PATH }}
+        run: make graphql-sync
+      # - name: Verify go.mod sync compatibility
+      #   working-directory: ${{ env.MESHERY_EXTENSIONS_PATH }}
+      #   run: |
+      #     # The environment variable cannot be set if the go.mod sync check fails.
+      #     # Hence set the env variable with the failure reason before performing the check that can be included in the email.
+      #     # This helps distinguish, if the release failed because go.mod has diverged or due to some other failure.
+      #     # On successful completion of the check, the variable is reset, ensuring clear differentiation and appropriate messaging for other types of failures (e.g., build failure).
+      #     echo "reason='go.mod for Meshery ${{env.MESHERY_VERSION }} and extension ${{ env.EXTENSION_VERSION }} has diverged'" >> $GITHUB_ENV;
+      #     make graphql-sync-err
+      #     if [ $? -ne 0 ]; then
+      #       echo "go.mod for Meshery ${{env.MESHERY_VERSION }} and extension ${{ env.EXTENSION_VERSION }} has diverged";
+      #       exit 1;
+      #     fi
+      #     echo "reason=" >> $GITHUB_ENV;
+
+      - name: Verify extension compatibility with meshery ui
+        # if: ${{ !failure() }}
+        working-directory: ${{ env.MESHERY_EXTENSIONS_PATH }}
+        run: |
+          make kanvas-validate-mesheryui-compatibility || {
+            message="extension ${{ env.EXTENSION_VERSION }} is not compatible with Meshery UI ${{ env.MESHERY_VERSION }}"
+            echo "reason=$message" >> $GITHUB_ENV
+            echo "$message"
+          }
+      - name: Build meshery-extension at version ${{ env.MESHERY_EXTENSIONS_PATH }}
+        if: ${{ !failure() }}
+        working-directory: ${{ env.MESHERY_EXTENSIONS_PATH }}
+        run: |
+          pwd;ls;
+          MESHERY_VERSION=${{ env.MESHERY_VERSION }}
+          docker build \
+            --no-cache \
+            -t temp:latest \
+            --build-arg TOKEN="${{ secrets.GH_ACCESS_TOKEN }}" \
+            --build-arg GIT_COMMITSHA="${GITHUB_SHA::8}" \
+            --build-arg GIT_VERSION="$MESHERY_VERSION" \
+            --build-arg RELEASE_CHANNEL="stable" \
+            .
+          mkdir /tmp/provider
+          docker run -v /tmp/provider:/tmp --rm --entrypoint cp temp:latest provider-meshery.tar.gz /tmp/provider-meshery.tar.gz
+          mv /tmp/provider/provider-meshery.tar.gz provider-meshery.tar.gz
+      - name: Echo extension version
+        id: next_version
+        run: |
+          extension_version=$(echo "${{ env.VERSION }}")
+      - name: Get Meshery Extensions Release draft
+        env:
+          ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: |
+          curl -sL -H "Authorization: token $ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/layer5labs/meshery-extensions/releases | jq -r 'map(select(.draft)) | first | .body' > releases.md
+      - name: Release Draft Notes
+        if: ${{ !failure() }}
+        uses: actions/github-script@v7
+        id: release-draft
+        with:
+          script: |
+            const fs = require('fs')
+            const ReleaseDraft = String(fs.readFileSync('./releases.md'))
+
+            return ReleaseDraft
+          result-encoding: string
+      - name: Publish release on meshery-extensions-packages with build artifacts
+        if: ${{ !failure() }}
+        uses: ncipollo/release-action@v1
+        with:
+          repo: meshery-extensions-packages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          tag: ${{ env.VERSION }}
+          name: Meshery Extensions ${{ env.VERSION }}
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ github.workspace }}/meshery-extensions/provider-meshery.tar.gz
+          omitNameDuringUpdate: true
+          replacesArtifacts: true
+          body: |
+            ${{ steps.release-draft.outputs.result }}
+      - name: Publish release on meshery-extensions with build artifacts
+        if: ${{ !failure() }}
+        uses: ncipollo/release-action@v1
+        with:
+          repo: meshery-extensions
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          tag: ${{ env.VERSION }}
+          name: Meshery Extensions ${{ env.VERSION }}
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ github.workspace }}/meshery-extensions/provider-meshery.tar.gz
+          omitNameDuringUpdate: true
+          replacesArtifacts: true
+          body: |
+            ${{ steps.release-draft.outputs.result }}
+      - name: On Failure, Send Email
+        if: ${{ failure() }}
+        uses: dawidd6/action-send-mail@v7
+        env:
+          msg: ${{ env.reason != '' && env.reason || ' Meshery Extensions build failure.' }}
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: Release Failure for Meshery Extensions ${{ env.VERSION }}
+          from: |
+            "Meshery Extensions" <no-reply@meshery.io>
+          to: |
+            "Layer5 Support" <support@layer5.io>
+          body: |
+            The Meshery Extensions release workflow for ${{ env.VERSION }} in ${{ github.repository }} has failed, reason: ${{ env.msg }}.
+            You can find more details in the GitHub Actions log ${{ github.workflow }}.
+
+  # Rebuilding and packaging the extensions in the Meshery Kanvas build, and rolling them out, will have no effect if the extensions are released independently. This is because the Meshery version will remain the same and will not be redeployed. We will need to access "kanvas.new" to ensure the package gets downloaded. Therefore, we should skip the rollout unless this process or flow changes.
+  rollout-kanvas:
+    needs: release-extensions
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Build and Rollout Kanvas
+        uses: layer5io/trigger-remote-provider-action@master
+        with:
+          name: "Build and Rollout Kanvas"
+          repo: layer5labs/meshery-extensions-packages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
