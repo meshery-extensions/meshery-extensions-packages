@@ -426,11 +426,11 @@ jobs:
 
             ${{ steps.test_reports.outputs.result }}
 
-            **[Full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})** | **[Download Playwright traces & screenshots](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)**
+            **[QA dashboard for this PR](https://qa.meshery.io/pr/${{ inputs.pr_number }}/)** | **[Full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})** | **[Download Playwright traces & screenshots](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)**
           append: true
 
       - name: Checkout QA
-        if: ${{ !cancelled() && inputs.pr_number == '' }}
+        if: ${{ !cancelled() }}
         uses: actions/checkout@v6
         with:
           repository: meshery-extensions/qa
@@ -438,7 +438,7 @@ jobs:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Merge Allure results across shards
-        if: ${{ !cancelled() && inputs.pr_number == '' }}
+        if: ${{ !cancelled() }}
         run: |
           mkdir -p merged-allure-results
           # Each shard may download with the original uploaded path preserved.
@@ -451,23 +451,36 @@ jobs:
             cp -R "$dir/." merged-allure-results/
           done
 
+      # Master runs populate the canonical kanvas-results/ tree that feeds the
+      # main qa.meshery.io dashboard. PR runs land under pr-reports/<N>/ so
+      # they stay isolated from the master report — qa's publish workflow's
+      # `kanvas-results/**` path filter won't fire on pr-reports/**.
       - name: Sync results with qa
-        if: ${{ !cancelled() && inputs.pr_number == '' }}
-        working-directory: qa
+        if: ${{ !cancelled() }}
         run: |
-          ls ..
-          echo "ls merged-allure-results"
-          ls ../merged-allure-results || true
-          make results-kanvas-sync KANVAS_RESULTS_PATH=../merged-allure-results
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            DEST="qa/pr-reports/${{ inputs.pr_number }}/kanvas-results"
+          else
+            DEST="qa/kanvas-results"
+          fi
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          if [ -d merged-allure-results ] && [ -n "$(ls -A merged-allure-results 2>/dev/null)" ]; then
+            cp -R merged-allure-results/. "$DEST/"
+            echo "Synced $(find "$DEST" -type f | wc -l) file(s) to $DEST"
+          else
+            echo "No merged-allure-results to sync"
+          fi
 
       - name: Commit & push results to qa
-        if: ${{ !cancelled() && inputs.pr_number == '' }}
+        if: ${{ !cancelled() }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "[Kanvas] Sync E2E Test Results - ${GITHUB_SHA}"
           commit_options: --signoff
           repository: qa
-          file_pattern: kanvas-results
+          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'kanvas-results' }}
           commit_user_name: meshery-ci
           commit_user_email: ci@meshery.io
         env:
