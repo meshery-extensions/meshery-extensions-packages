@@ -99,33 +99,36 @@ jobs:
         with:
           message: ":x: Failed to checkout Cloud repo."
 
-      # - name: Setup Go
-      #   uses: actions/setup-go@v6
-      #   with:
-      #     go-version-file: ./meshery-cloud/go.mod
-      #     cache: true
-      # - name: Run Go tests with coverage
-      #   id: go-test
-      #   working-directory: meshery-cloud
-      #   continue-on-error: true
-      #   run: |
-      #     set -eo pipefail
-      #     go test ./... -coverprofile=coverage.out
-      #     total=$(go tool cover -func=coverage.out | awk '/^total:/ {print $3}')
-      #     echo "total=$total" >> "$GITHUB_OUTPUT"
-      # - name: comment coverage success
-      #   if: steps.go-test.outcome == 'success'
-      #   uses: ./.github/actions/cloud-comment
-      #   with:
-      #     message: ":bar_chart: Go test coverage (go tool cover): **${{ steps.go-test.outputs.total }}**"
-      # - name: comment coverage failure
-      #   if: steps.go-test.outcome == 'failure'
-      #   uses: ./.github/actions/cloud-comment
-      #   with:
-      #     message: ":x: Go tests failed. Coverage report unavailable."
-      # - name: Fail on Go test failure
-      #   if: steps.go-test.outcome == 'failure'
-      #   run: exit 1
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: ./meshery-cloud/go.mod
+          cache: true
+      # ALLURE_OUTPUT_PATH routes allure-go writers to <path>/allure-results,
+      # which the sync-to-qa step at the end of this job picks up. We don't
+      # gate later steps on Go test pass/fail — sync runs unconditionally so
+      # the QA dashboard reflects every run.
+      - name: Run Go tests with coverage
+        id: go-test
+        working-directory: meshery-cloud
+        continue-on-error: true
+        env:
+          ALLURE_OUTPUT_PATH: ${{ github.workspace }}/meshery-cloud
+        run: |
+          set -eo pipefail
+          go test ./server/... -coverprofile=coverage.out
+          total=$(go tool cover -func=coverage.out | awk '/^total:/ {print $3}')
+          echo "total=$total" >> "$GITHUB_OUTPUT"
+      - name: comment coverage success
+        if: steps.go-test.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          message: ":bar_chart: Go test coverage (go tool cover): **${{ steps.go-test.outputs.total }}**"
+      - name: comment coverage failure
+        if: steps.go-test.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          message: ":x: Go tests failed. Coverage report unavailable."
 
       - name: Setup Node.js
         id: setup-node
@@ -219,6 +222,30 @@ jobs:
         uses: ./.github/actions/cloud-comment
         with:
           message: ":x: Cloud UI tests failed. Aborting staging build."
+
+      - name: Install Playwright browsers
+        working-directory: meshery-cloud/ui
+        run: npx playwright install --with-deps
+      # ALLURE_RESULTS_DIR routes allure-playwright (when wired in
+      # meshery-cloud) to a path the sync-to-qa step collects. Until that
+      # reporter is added, the directory stays empty and sync no-ops.
+      - name: Run Cloud UI e2e tests
+        id: cloud-ui-e2e
+        working-directory: meshery-cloud/ui
+        continue-on-error: true
+        env:
+          ALLURE_RESULTS_DIR: ${{ github.workspace }}/meshery-cloud/ui/allure-results
+        run: npm run e2e
+      - name: comment e2e success
+        if: steps.cloud-ui-e2e.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          message: ":heavy_check_mark: Cloud UI e2e tests passed."
+      - name: comment e2e failure
+        if: steps.cloud-ui-e2e.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          message: ":x: Cloud UI e2e tests failed."
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v4
@@ -350,6 +377,71 @@ jobs:
           message: |
             :x: Failed to deploy staging on OCI OKE
             See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+      # Publish Cloud test results to the QA repo. Go server tests
+      # (allure-go) → meshery-server-results/. Cloud UI Jest + Playwright
+      # e2e (via allure reporters in meshery-cloud) → remote-provider-results/,
+      # the bucket aligned to the Layer5Cloud project in qa's allurerc.mjs.
+      # PR runs are routed under pr-reports/<N>/ to keep them out of the
+      # canonical master dashboard.
+      - name: Checkout QA
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@v6
+        with:
+          repository: meshery-extensions/qa
+          path: qa
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Sync Cloud test results to qa
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            BASE="qa/pr-reports/${{ inputs.pr_number }}"
+          else
+            BASE="qa"
+          fi
+          SERVER_DEST="$BASE/meshery-server-results"
+          CLOUD_DEST="$BASE/remote-provider-results"
+          rm -rf "$SERVER_DEST" "$CLOUD_DEST"
+          mkdir -p "$SERVER_DEST" "$CLOUD_DEST"
+
+          # allure-go writes into both $ALLURE_OUTPUT_PATH/allure-results
+          # and per-package allure-results dirs depending on test setup.
+          for dir in \
+            meshery-cloud/allure-results \
+            meshery-cloud/server/*/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." "$SERVER_DEST/" 2>/dev/null || true
+          done
+
+          for dir in meshery-cloud/ui/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." "$CLOUD_DEST/" 2>/dev/null || true
+          done
+
+          echo "meshery-server-results: $(find "$SERVER_DEST" -type f | wc -l) file(s)"
+          echo "remote-provider-results: $(find "$CLOUD_DEST" -type f | wc -l) file(s)"
+
+      - name: Commit & push Cloud results to qa
+        if: ${{ !cancelled() }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[Cloud] Sync test results - ${GITHUB_SHA}"
+          commit_options: --signoff
+          repository: qa
+          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'meshery-server-results remote-provider-results' }}
+          commit_user_name: meshery-ci
+          commit_user_email: ci@meshery.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Comment QA dashboard link
+        if: ${{ !cancelled() && inputs.pr_number != '' }}
+        uses: ./.github/actions/cloud-comment
+        with:
+          message: ":bar_chart: [QA dashboard for this PR](https://qa.meshery.io/pr/${{ inputs.pr_number }}/)"
+
   set-final-status:
     runs-on: ubuntu-24.04
     if: always()
