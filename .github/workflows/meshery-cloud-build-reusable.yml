@@ -223,6 +223,11 @@ jobs:
         with:
           message: ":x: Cloud UI tests failed. Aborting staging build."
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('meshery-cloud/ui/package-lock.json') }}
       - name: Install Playwright browsers
         working-directory: meshery-cloud/ui
         run: npx playwright install --with-deps
