@@ -17,6 +17,9 @@ jobs:
   release-kanvas:
     name: Build and Release Kanvas
     runs-on: "ubuntu-24.04"
+    env:
+      MESHERY_EXTENSIONS_PATH: ${{ github.workspace }}/meshery-extensions
+      EXTENSION_BUILD_ROOT: /home/runner/.meshery/provider/Layer5
     outputs:
       revision: ${{ steps.fetch-versions.outputs.REVISION }}
     steps:
@@ -108,12 +111,12 @@ jobs:
           export PROVIDER_PATH="provider/navigator";
           make prod;
       - name: Generate Artifact
-        working-directory: /home/runner/.meshery/provider/Meshery/${{ env.EXTENSION_VERSION }}
+        working-directory: ${{ env.EXTENSION_BUILD_ROOT }}/${{ env.EXTENSION_VERSION }}
         run: |
           pwd;
           ls;
-          tar -zcf ${{ github.workspace }}/meshery-extensions/provider-meshery.tar.gz ./provider;
-          tree ${{ github.workspace }}/meshery-extensions;
+          tar -zcf ${{ env.MESHERY_EXTENSIONS_PATH }}/provider-meshery.tar.gz ./provider;
+          tree ${{ env.MESHERY_EXTENSIONS_PATH }};
       - name: debug
         working-directory: ./meshery-extensions
         run: |
@@ -145,7 +148,7 @@ jobs:
           name: Meshery Extensions ${{ env.LATEST_EXTENSION_VERSION }}
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ${{ github.workspace }}/meshery-extensions/provider-meshery.tar.gz
+          artifacts: ${{ env.MESHERY_EXTENSIONS_PATH }}/provider-meshery.tar.gz
           omitNameDuringUpdate: true
           replacesArtifacts: true
           body: |
@@ -159,7 +162,7 @@ jobs:
           name: Meshery Extensions ${{ env.LATEST_EXTENSION_VERSION }}
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ${{ github.workspace }}/meshery-extensions/provider-meshery.tar.gz
+          artifacts: ${{ env.MESHERY_EXTENSIONS_PATH }}/provider-meshery.tar.gz
           omitNameDuringUpdate: true
           replacesArtifacts: true
           body: |
