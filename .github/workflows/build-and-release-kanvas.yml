@@ -89,7 +89,53 @@ jobs:
           fi
           # reset the reason otherwise
           echo "reason=" >> $GITHUB_ENV;
-          
+
+      - name: Align plugin dependencies with Meshery host versions
+        working-directory: ./meshery-extensions
+        run: |
+          # Go plugins require the plugin and host to be linked against the
+          # EXACT same version of every shared package (runtime plugin.Open
+          # otherwise fails with "plugin was built with a different version of
+          # package ..."). The `graphql-sync-err` target above only validates
+          # the generated GraphQL schema; it does NOT enforce matching go.mod
+          # versions. Here we pin every module shared with the meshery host to
+          # the exact version meshery selects, so the plugin ABI matches.
+          set -euo pipefail
+
+          # Resolve meshery's module graph (authoritative) into a lookup table.
+          (cd ../meshery && go list -m -f '{{if not .Main}}{{.Path}} {{.Version}}{{end}}' all) \
+            | awk 'NF==2' > /tmp/meshery-versions.txt
+
+          # For every module the extension uses, if meshery also uses it, pin
+          # the extension to meshery's exact version via a replace directive.
+          # Replace (not just require) forces resolution for transitive deps too.
+          go list -m -f '{{if not .Main}}{{.Path}}{{end}}' all | awk 'NF' \
+            | while read -r mod; do
+                ver=$(awk -v m="$mod" '$1==m {print $2; exit}' /tmp/meshery-versions.txt)
+                if [ -n "$ver" ]; then
+                  go mod edit -replace="${mod}=${mod}@${ver}"
+                fi
+              done
+
+          go mod tidy -e
+
+          echo "--- key shared package versions after alignment ---"
+          for pkg in \
+            github.com/vektah/gqlparser/v2 \
+            github.com/99designs/gqlgen \
+            github.com/meshery/schemas \
+            github.com/layer5io/meshkit \
+            k8s.io/client-go \
+            k8s.io/apimachinery; do
+            host_ver=$(cd ../meshery && go list -m -f '{{.Version}}' "$pkg" 2>/dev/null || echo "n/a")
+            plug_ver=$(go list -m -f '{{.Version}}' "$pkg" 2>/dev/null || echo "n/a")
+            printf '  %-45s host=%s plugin=%s\n' "$pkg" "$host_ver" "$plug_ver"
+            if [ "$host_ver" != "n/a" ] && [ "$host_ver" != "$plug_ver" ]; then
+              echo "reason=plugin/host version mismatch for $pkg (host=$host_ver plugin=$plug_ver)" >> $GITHUB_ENV
+              exit 1
+            fi
+          done
+
       - name: Setup Node 20
         uses: actions/setup-node@v6
         with:
