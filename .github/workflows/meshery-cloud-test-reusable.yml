@@ -185,50 +185,63 @@ jobs:
       #------------------------------------------
 
       #------------------------------------------
-      - name: Checkout qa.meshery.io repo
-        if: ${{ inputs.pr_number == '' && steps.unit-tests.outcome == 'success' && (steps.integration-tests.outcome == 'success' || steps.integration-tests.outcome == 'skipped') }}
+      # Publish server test results (pass or fail) to qa.meshery.io. PR runs
+      # route under pr-reports/<N>/ so they stay out of the master dashboard.
+      # The sync is intentionally ungated on test outcome — failing runs must
+      # land so the dashboard reflects every CI run.
+      - name: Checkout QA
+        if: ${{ !cancelled() }}
         uses: actions/checkout@v6
         with:
-          repository: meshery/qa
+          repository: meshery-extensions/qa
           path: qa
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
-      - name: Sync results with QA
-        if: ${{ inputs.pr_number == '' && steps.unit-tests.outcome == 'success' && (steps.integration-tests.outcome == 'success' || steps.integration-tests.outcome == 'skipped') }}
-        working-directory: qa
-        run: make remote-provider-results-sync REMOTE_PROVIDER_RESULTS_PATH=../meshery-cloud/allure-results/
+      - name: Sync server test results to qa
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            BASE="qa/pr-reports/${{ inputs.pr_number }}"
+          else
+            BASE="qa"
+          fi
+          SERVER_DEST="$BASE/meshery-server-results"
+          rm -rf "$SERVER_DEST"
+          mkdir -p "$SERVER_DEST"
+          for dir in \
+            meshery-cloud/allure-results \
+            meshery-cloud/server/*/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." "$SERVER_DEST/" 2>/dev/null || true
+          done
+          echo "meshery-server-results: $(find "$SERVER_DEST" -type f | wc -l) file(s)"
 
-      - name: Commit & push results to QA
-        if: ${{ inputs.pr_number == '' && steps.unit-tests.outcome == 'success' && (steps.integration-tests.outcome == 'success' || steps.integration-tests.outcome == 'skipped') }}
+      - name: Commit & push server results to qa
+        if: ${{ !cancelled() }}
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "[Extension] Sync Remote Provider Cloud Server Test Results - ${{ github.sha }}"
+          commit_message: "[Cloud] Sync server test results - ${GITHUB_SHA}"
           commit_options: --signoff
           repository: qa
-          file_pattern: "remote-provider-results/**"
+          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'meshery-server-results' }}
           commit_user_name: meshery-ci
           commit_user_email: ci@meshery.io
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Comment QA sync success
-        if: ${{ success() && inputs.pr_number == '' && steps.unit-tests.outcome == 'success' && (steps.integration-tests.outcome == 'success' || steps.integration-tests.outcome == 'skipped') }}
+        if: ${{ success() && !cancelled() }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
-          message: ":heavy_check_mark: Sync'ed test results to qa.meshery.io repo."
+          message: ":heavy_check_mark: Synced server test results to QA dashboard."
       - name: Comment QA sync failure
-        if: ${{ failure() && inputs.pr_number == '' && steps.unit-tests.outcome == 'success' && (steps.integration-tests.outcome == 'success' || steps.integration-tests.outcome == 'skipped') }}
+        if: ${{ failure() }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
-          message: ":x: Failed to sync test results to qa.meshery.io repo."
-      - name: Comment QA sync skipped
-        if: ${{ inputs.pr_number == '' && (steps.unit-tests.outcome == 'failure' || steps.integration-tests.outcome == 'failure') }}
-        uses: ./.github/actions/cloud-comment
-        with:
-          id: cloud-tests
-          message: ":warning: Skipped QA sync — test failures detected."
+          message: ":x: Failed to sync server test results to QA dashboard."
       #------------------------------------------
 
       #------------------------------------------
@@ -372,4 +385,47 @@ jobs:
         with:
           id: cloud-ui-tests
           message: ":x: Cloud UI tests failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+      #------------------------------------------
+
+      #------------------------------------------
+      # Publish UI (Jest) results to qa.meshery.io. Runs on pass or fail.
+      # Until meshery-cloud wires an allure-jest reporter into the ui target,
+      # meshery-cloud/ui/allure-results will be empty and this step no-ops.
+      - name: Checkout QA
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@v6
+        with:
+          repository: meshery-extensions/qa
+          path: qa
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Sync UI test results to qa
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            BASE="qa/pr-reports/${{ inputs.pr_number }}"
+          else
+            BASE="qa"
+          fi
+          UI_DEST="$BASE/remote-provider-results"
+          mkdir -p "$UI_DEST"
+          for dir in meshery-cloud/ui/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." "$UI_DEST/" 2>/dev/null || true
+          done
+          echo "remote-provider-results (UI): $(find "$UI_DEST" -type f | wc -l) file(s)"
+
+      - name: Commit & push UI results to qa
+        if: ${{ !cancelled() }}
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "[Cloud] Sync UI test results - ${GITHUB_SHA}"
+          commit_options: --signoff
+          repository: qa
+          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'remote-provider-results' }}
+          commit_user_name: meshery-ci
+          commit_user_email: ci@meshery.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       #------------------------------------------
