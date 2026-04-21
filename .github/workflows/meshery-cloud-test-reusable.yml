@@ -433,7 +433,7 @@ jobs:
   e2e-tests:
     name: Playwright e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
@@ -487,11 +487,12 @@ jobs:
       # ALLURE_RESULTS_DIR routes allure-playwright (when wired in
       # meshery-cloud) to a path the sync-to-qa step collects. Until that
       # reporter is added, the directory stays empty and sync no-ops.
-      # Per-step timeout-minutes catches a hung test before the job-level
-      # budget, which would otherwise also kill the sync step.
+      # Step timeout is set below the job timeout so a hung test fails
+      # with room left for the QA sync + gating step to run. Current
+      # observed e2e runtime is ~22 min; 25 min gives a small buffer.
       - name: Run Cloud UI e2e tests
         id: e2e
-        timeout-minutes: 15
+        timeout-minutes: 25
         continue-on-error: true
         working-directory: meshery-cloud/ui
         env:
@@ -531,6 +532,10 @@ jobs:
           path: qa
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
+      # Clear the destination before copying so removed/renamed result
+      # files don't linger as stale entries on the QA dashboard. Safe in
+      # this job because no other parallel job writes to the same subtree
+      # within this run (the ui-tests Jest sync is currently a no-op).
       - name: Sync e2e results to qa
         if: ${{ !cancelled() }}
         run: |
@@ -541,6 +546,7 @@ jobs:
             BASE="qa"
           fi
           E2E_DEST="$BASE/remote-provider-results"
+          rm -rf "$E2E_DEST"
           mkdir -p "$E2E_DEST"
           for dir in meshery-cloud/ui/allure-results; do
             [ -d "$dir" ] || continue
@@ -560,4 +566,12 @@ jobs:
           commit_user_email: ci@meshery.io
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      # Gate after the sync so failing e2e results still publish to QA
+      # while the job correctly surfaces as failed in PR checks.
+      - name: Fail job if e2e failed
+        if: steps.e2e.outcome == 'failure'
+        run: |
+          echo "::error::Playwright e2e tests failed"
+          exit 1
       #------------------------------------------
