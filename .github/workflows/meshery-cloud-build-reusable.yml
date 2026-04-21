@@ -103,70 +103,9 @@ jobs:
         with:
           message: ":x: Failed to checkout Cloud repo."
 
-      # Unit, integration, and Jest UI tests run in meshery-cloud-test-reusable.yml.
-      # This workflow owns Playwright e2e + image build + deploy only.
-      - name: Setup Node.js
-        id: setup-node
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ inputs.node_version }}
-          cache: 'npm'
-          cache-dependency-path: meshery-cloud/ui/package-lock.json
-      - name: comment success
-        if: steps.setup-node.outcome == 'success'
-        uses: ./.github/actions/cloud-comment
-        with:
-          message: ":heavy_check_mark: Setup Node.js for Playwright e2e. Installing dependencies..."
-      - name: comment failure
-        if: steps.setup-node.outcome == 'failure'
-        uses: ./.github/actions/cloud-comment
-        with:
-          message: ":x: Failed to setup Node.js for Playwright e2e."
-
-      - name: Install Cloud UI dependencies
-        id: install-cloud-ui-deps
-        working-directory: meshery-cloud
-        run: make ui-setup
-      - name: comment success
-        if: steps.install-cloud-ui-deps.outcome == 'success'
-        uses: ./.github/actions/cloud-comment
-        with:
-          message: ":heavy_check_mark: Installed Cloud UI dependencies."
-      - name: comment failure
-        if: steps.install-cloud-ui-deps.outcome == 'failure'
-        uses: ./.github/actions/cloud-comment
-        with:
-          message: ":x: Failed to install Cloud UI dependencies."
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ hashFiles('meshery-cloud/ui/package-lock.json') }}
-      - name: Install Playwright browsers
-        working-directory: meshery-cloud/ui
-        run: npx playwright install --with-deps
-      # ALLURE_RESULTS_DIR routes allure-playwright (when wired in
-      # meshery-cloud) to a path the sync-to-qa step collects. Until that
-      # reporter is added, the directory stays empty and sync no-ops.
-      - name: Run Cloud UI e2e tests
-        id: cloud-ui-e2e
-        working-directory: meshery-cloud/ui
-        continue-on-error: true
-        env:
-          ALLURE_RESULTS_DIR: ${{ github.workspace }}/meshery-cloud/ui/allure-results
-        run: npm run e2e
-      - name: comment e2e success
-        if: steps.cloud-ui-e2e.outcome == 'success'
-        uses: ./.github/actions/cloud-comment
-        with:
-          message: ":heavy_check_mark: Cloud UI e2e tests passed."
-      - name: comment e2e failure
-        if: steps.cloud-ui-e2e.outcome == 'failure'
-        uses: ./.github/actions/cloud-comment
-        with:
-          message: ":x: Cloud UI e2e tests failed."
-
+      # All tests (unit, integration, Jest, Playwright e2e) run in
+      # meshery-cloud-test-reusable.yml so they parallelize with image
+      # build + deploy. This workflow is pure build + deploy.
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v4
       - name: comment success
@@ -298,53 +237,9 @@ jobs:
             :x: Failed to deploy staging on OCI OKE
             See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
 
-      # Publish Playwright e2e results to the QA repo. Unit/integration/Jest
-      # results are synced by meshery-cloud-test-reusable.yml. Playwright
-      # (allure-playwright in meshery-cloud) → remote-provider-results/,
-      # the bucket aligned to the Layer5Cloud project in qa's allurerc.mjs.
-      # PR runs route under pr-reports/<N>/ so they stay out of master's
-      # dashboard. Runs on !cancelled() so failing results still land.
-      - name: Checkout QA
-        if: ${{ !cancelled() }}
-        uses: actions/checkout@v6
-        with:
-          repository: meshery-extensions/qa
-          path: qa
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
-
-      - name: Sync Cloud e2e results to qa
-        if: ${{ !cancelled() }}
-        run: |
-          set -euo pipefail
-          if [ -n "${{ inputs.pr_number }}" ]; then
-            BASE="qa/pr-reports/${{ inputs.pr_number }}"
-          else
-            BASE="qa"
-          fi
-          CLOUD_DEST="$BASE/remote-provider-results"
-          rm -rf "$CLOUD_DEST"
-          mkdir -p "$CLOUD_DEST"
-
-          for dir in meshery-cloud/ui/allure-results; do
-            [ -d "$dir" ] || continue
-            cp -R "$dir/." "$CLOUD_DEST/" 2>/dev/null || true
-          done
-
-          echo "remote-provider-results: $(find "$CLOUD_DEST" -type f | wc -l) file(s)"
-
-      - name: Commit & push Cloud e2e results to qa
-        if: ${{ !cancelled() }}
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "[Cloud] Sync e2e results - ${GITHUB_SHA}"
-          commit_options: --signoff
-          repository: qa
-          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'remote-provider-results' }}
-          commit_user_name: meshery-ci
-          commit_user_email: ci@meshery.io
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
-
+      # QA dashboard is populated by meshery-cloud-test-reusable.yml. This
+      # step just surfaces the link on PR runs once the build + deploy path
+      # has finished.
       - name: Comment QA dashboard link
         if: ${{ !cancelled() && inputs.pr_number != '' }}
         uses: ./.github/actions/cloud-comment
