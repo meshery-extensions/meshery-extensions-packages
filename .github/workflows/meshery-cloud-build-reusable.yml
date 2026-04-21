@@ -8,12 +8,15 @@ on:
       pr_number:
         required: true
         type: string
+      node_version:
+        description: "Node.js version for UI build/tests"
+        required: false
+        default: '20.x'
+        type: string
     secrets:
       PROVIDER_TOKEN:
         required: true
       GLOBAL_TOKEN:
-        required: true
-      NODE_VERSION:
         required: true
       GH_ACCESS_TOKEN:
         required: true
@@ -134,7 +137,7 @@ jobs:
         id: setup-node
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ secrets.NODE_VERSION }}
+          node-version: ${{ inputs.node_version }}
           cache: 'npm'
           cache-dependency-path: meshery-cloud/ui/package-lock.json
       - name: comment success
@@ -181,7 +184,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ secrets.NODE_VERSION }}
+          node-version: ${{ inputs.node_version }}
           cache: 'npm'
           cache-dependency-path: meshery-cloud/ui/package-lock.json
       - name: comment success
