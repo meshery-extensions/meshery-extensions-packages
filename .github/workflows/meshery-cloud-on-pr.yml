@@ -8,6 +8,10 @@ on:
       pr_number:
         required: true
         type: string
+      node_version:
+        description: "Node.js version for UI build/tests (overrides vars.NODE_VERSION for this run)"
+        required: false
+        type: string
 
 jobs:
   build:
@@ -31,7 +35,7 @@ jobs:
     with:
       pr_commit_sha: ${{inputs.pr_commit_sha}}
       pr_number: ${{inputs.pr_number}}
-      node_version: ${{vars.NODE_VERSION || '20.x'}}
+      node_version: ${{inputs.node_version || vars.NODE_VERSION || '20.x'}}
 
   test:
     uses: ./.github/workflows/meshery-cloud-test-reusable.yml
@@ -40,4 +44,4 @@ jobs:
     with:
       pr_commit_sha: ${{inputs.pr_commit_sha}}
       pr_number: ${{inputs.pr_number}}
-      node_version: ${{vars.NODE_VERSION || '20.x'}}
+      node_version: ${{inputs.node_version || vars.NODE_VERSION || '20.x'}}
