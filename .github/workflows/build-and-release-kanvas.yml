@@ -33,14 +33,14 @@ jobs:
           fetch-depth: 1
           ref: ${{ inputs.branch }}
 
-      - name: Checkout meshery-cloud
-        uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
-          repository: layer5io/meshery-cloud
-          path: "meshery-cloud"
-          fetch-depth: 1
-          ref: master
+      # - name: Checkout meshery-cloud
+      #   uses: actions/checkout@v6
+      #   with:
+      #     token: ${{ secrets.GH_ACCESS_TOKEN }}
+      #     repository: layer5io/meshery-cloud
+      #     path: "meshery-cloud"
+      #     fetch-depth: 1
+      #     ref: master
 
       - name: Get latest version for meshery and meshery-extensions
         id: fetch-versions
@@ -56,6 +56,12 @@ jobs:
           echo "LATEST_EXTENSION_VERSION=$MESHERY_VERSION-$EXTENSION_REVISION" >> $GITHUB_ENV
 
           echo "REVISION=$EXTENSION_REVISION" >> $GITHUB_OUTPUT
+
+          echo "MESHERY_VERSION=$MESHERY_VERSION"
+          echo "EXTENSION_VERSION=$EXTENSION_VERSION"
+          echo "EXTENSION_REVISION=$EXTENSION_REVISION"
+          echo "LATEST_EXTENSION_VERSION=$MESHERY_VERSION-$EXTENSION_REVISION"
+          echo "REVISION=$REVISION"
       - name: Override version and revision, if provided
         if: ${{ inputs.version }}
         run: |
@@ -65,6 +71,16 @@ jobs:
           echo "EXTENSION_REVISION=${{ inputs.revision }}" >> $GITHUB_ENV
           echo "LATEST_EXTENSION_VERSION=${{ inputs.version }}-${{ inputs.revision }}" >> $GITHUB_ENV
       
+      - name: Re-checkout meshery-extensions at release tag
+        if: ${{ inputs.version }}
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          repository: layer5labs/meshery-extensions
+          path: "meshery-extensions"
+          fetch-depth: 1
+          ref: ${{ env.LATEST_EXTENSION_VERSION }}
+
       - name: Checkout meshery/meshery
         uses: actions/checkout@v6
         with:
@@ -82,7 +98,7 @@ jobs:
       - name: Verify go.mod compatibility
         working-directory: ./meshery-extensions
         run: |
-          echo "reason='go.mod for Meshery ${{env.MESHERY_VERSION }} and extension ${{ env.EXTENSION_VERSION }} has diverged'" >> $GITHUB_ENV;
+          echo "reason='go.mod for Meshery ${{env.MESHERY_VERSION }} and extension ${{ env.LATEST_EXTENSION_VERSION }} has diverged'" >> $GITHUB_ENV;
           make graphql-sync-err
           if [ $? -ne 0 ]; then
             exit 1;
@@ -100,7 +116,7 @@ jobs:
         working-directory: "meshery-extensions"
         run: |
           make kanvas-validate-mesheryui-compatibility || {
-            message="extension ${{ env.EXTENSION_VERSION }} is not compatible with Meshery UI ${{ env.MESHERY_VERSION }}"
+            message="extension ${{ env.LATEST_EXTENSION_VERSION }} is not compatible with Meshery UI ${{ env.MESHERY_VERSION }}"
             echo "reason=$message" >> $GITHUB_ENV
             echo "$message"
             exit 1
