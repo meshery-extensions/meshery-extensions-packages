@@ -80,6 +80,7 @@ jobs:
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
           fetch-depth: 1
           path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Comment checkout success
         if: success()
@@ -308,6 +309,7 @@ jobs:
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
           fetch-depth: 1
           path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Comment checkout success
         if: success()
@@ -479,6 +481,7 @@ jobs:
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
           fetch-depth: 1
           path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

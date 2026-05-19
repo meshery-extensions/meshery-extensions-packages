@@ -95,6 +95,7 @@ jobs:
           path: ./meshery-cloud
           fetch-depth: 1
           ref: refs/pull/${{ inputs.pr_number }}/head
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: comment success
         if: success()
         uses: ./.github/actions/cloud-comment
@@ -182,7 +183,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: https://github.com/layer5io/meshery-cloud.git#refs/pull/${{ inputs.pr_number }}/head
+          context: ./meshery-cloud
           build-args: |
             ENVIRONMENT="staging"
             GIT_VERSION=staging-${{env.PR_NUMBER}}
