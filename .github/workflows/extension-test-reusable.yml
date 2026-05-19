@@ -60,7 +60,7 @@ jobs:
           repository: layer5labs/meshery-extensions
           number: ${{ inputs.pr_number }}
           id: extension-test
-          message: "Starting [Meshery Extensions tests](https://github.com/layer5labs/meshery-extensions-packages/actions/runs/${{ github.run_id }})..."
+          message: "Starting [Meshery Extensions tests](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }})..."
           recreate: true
 
   build-meshery-extension:
@@ -175,7 +175,7 @@ jobs:
 
       - name: Set Release extensions
         run: |
-          curl -s https://api.github.com/repos/layer5labs/meshery-extensions-packages/releases > extension_releases.json
+          curl -s https://api.github.com/repos/meshery-extensions/meshery-extensions-packages/releases > extension_releases.json
           TAG=$(jq -r '.[0].tag_name' extension_releases.json)
           echo "tag=$TAG" >> $GITHUB_ENV
 

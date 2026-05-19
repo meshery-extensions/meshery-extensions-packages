@@ -19,7 +19,7 @@ assignees: ''
 
 ---
 #### Contributor and Resources
-- 📚 [Contributor Guide](https://github.com/layer5labs/meshery-extensions-packages/blob/master/README.md)
+- 📚 [Contributor Guide](https://github.com/meshery-extensions/meshery-extensions-packages/blob/master/README.md)
 - 🛠 [Meshery Build & Release Strategy](https://docs.meshery.io/project/build-and-release)
 - 🙋🏾🙋🏼 Questions: [Layer5 Discussion Forum](https://discuss.layer5.io) and [Layer5 Community Slack](http://slack.layer5.io)
 
@@ -29,6 +29,6 @@ assignees: ''
 > Example of a sparse checkout:
 > 
 > ```shell
-> git clone --filter=blob:none --sparse https://github.com/layer5labs/meshery-extensions-packages
+> git clone --filter=blob:none --sparse https://github.com/meshery-extensions/meshery-extensions-packages
 > git sparse-checkout add assets
 > ```

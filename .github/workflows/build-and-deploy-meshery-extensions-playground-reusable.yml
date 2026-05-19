@@ -131,7 +131,7 @@ jobs:
       - name: Bundle kanvas extension with the image
         working-directory: "./meshery-extensions"
         run: |
-          wget https://github.com/layer5labs/meshery-extensions-packages/releases/download/${{ env.MESHERY_EXTENSION_VERSION }}/provider-meshery.tar.gz
+          wget https://github.com/meshery-extensions/meshery-extensions-packages/releases/download/${{ env.MESHERY_EXTENSION_VERSION }}/provider-meshery.tar.gz
 
           mkdir extensions-package
           tar xzf provider-meshery.tar.gz -C extensions-package

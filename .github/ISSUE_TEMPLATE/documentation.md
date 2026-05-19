@@ -26,6 +26,6 @@ assignees: ''
 > Example of a sparse checkout:
 > 
 > ```shell
-> git clone --filter=blob:none --sparse https://github.com/layer5labs/meshery-extensions-packages
+> git clone --filter=blob:none --sparse https://github.com/meshery-extensions/meshery-extensions-packages
 > git sparse-checkout add assets
 > ```

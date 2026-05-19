@@ -46,7 +46,7 @@ Understanding the relationship between these repositories is critical:
   - Component reusability
   - Browser compatibility requirements
 
-#### 4. **layer5labs/meshery-extensions-packages**
+#### 4. **meshery-extensions/meshery-extensions-packages**
 - **Purpose:** Multi-function asset repository
 - **Technology:** Static assets, HTML/CSS, GitHub Actions
 - **Key Features:** Badge storage, snapshot images, email templates, design embeds
@@ -107,7 +107,7 @@ The `meshery-extensions-packages` repository contains:
 - name: Sparse checkout (REQUIRED for large repos)
   uses: actions/checkout@v4
   with:
-    repository: layer5labs/meshery-extensions-packages
+    repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |
       assets/badges
       email/templates
@@ -119,7 +119,7 @@ The `meshery-extensions-packages` repository contains:
 
 ```bash
 # Initial sparse clone
-git clone --filter=blob:none --sparse https://github.com/layer5labs/meshery-extensions-packages
+git clone --filter=blob:none --sparse https://github.com/meshery-extensions/meshery-extensions-packages
 cd meshery-extensions-packages
 
 # Add specific directories
@@ -153,7 +153,7 @@ git sparse-checkout disable
   if: steps.cache.outputs.cache-hit != 'true'
   uses: actions/checkout@v4
   with:
-    repository: layer5labs/meshery-extensions-packages
+    repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |
       assets/badges
     path: meshery-extensions-packages
@@ -519,7 +519,7 @@ jobs:
 ```bash
 # Use sparse checkout
 git clone --filter=blob:none --sparse \
-  https://github.com/layer5labs/meshery-extensions-packages
+  https://github.com/meshery-extensions/meshery-extensions-packages
 git sparse-checkout add <needed-directory>
 ```
 

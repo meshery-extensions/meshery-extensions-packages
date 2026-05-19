@@ -1,8 +1,8 @@
 <p style="text-align:center;" align="center">
       <picture align="center">
-         <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/layer5labs/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-light-no-trim.svg" />
-         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/layer5labs/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-no-trim.svg" />
-         <img align="center" src="https://raw.githubusercontent.com/layer5labs/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-no-trim.svg" alt="Shows a dark layer5 logo in light mode and a white logo in dark mode" width="45%"/>
+         <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/meshery-extensions/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-light-no-trim.svg" />
+         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/meshery-extensions/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-no-trim.svg" />
+         <img align="center" src="https://raw.githubusercontent.com/meshery-extensions/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-no-trim.svg" alt="Shows a dark layer5 logo in light mode and a white logo in dark mode" width="45%"/>
       </picture>
 </p>
 
@@ -29,7 +29,7 @@
 > Example of a sparse checkout:
 > 
 > ```shell
-> git clone --filter=blob:none --sparse https://github.com/layer5labs/meshery-extensions-packages
+> git clone --filter=blob:none --sparse https://github.com/meshery-extensions/meshery-extensions-packages
 > git sparse-checkout add assets
 > ```
 >
@@ -68,7 +68,7 @@ Access Layer5 Cloud at https://cloud.layer5.io
 
 **Relevant Directories**
 - `/email`: Contains html emails templates, svgs/png to be used for emails sent for `layer5-cloud` and other newsletter html templates.
-- See the aftifacts under each [Release](https://github.com/layer5labs/meshery-extensions-packages/releases).
+- See the aftifacts under each [Release](https://github.com/meshery-extensions/meshery-extensions-packages/releases).
 
 ### Function 3: Images taken by Kanvas Snapshots
 Find out more at https://meshery.io/extensions/github-action-meshery-snapshot

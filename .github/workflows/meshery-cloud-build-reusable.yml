@@ -80,7 +80,7 @@ jobs:
       - name: comment success
         uses: ./.github/actions/cloud-comment
         with:
-          message: "Starting Cloud Server build ([takes approximately 10 min end-to-end](https://github.com/layer5labs/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
+          message: "Starting Cloud Server build ([takes approximately 10 min end-to-end](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
           append: false
           recreate: true
       

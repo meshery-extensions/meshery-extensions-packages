@@ -21,7 +21,7 @@ Create a branch and PR in this repo. Do not fork the repo.
 
 ```bash
 # Correct way to clone
-git clone --filter=blob:none --sparse https://github.com/layer5labs/meshery-extensions-packages
+git clone --filter=blob:none --sparse https://github.com/meshery-extensions/meshery-extensions-packages
 cd meshery-extensions-packages
 git sparse-checkout set assets  # or other specific directories needed
 ```
@@ -34,7 +34,7 @@ When creating or modifying GitHub Actions workflows, **ALWAYS** use sparse check
 - name: Checkout repository
   uses: actions/checkout@v4
   with:
-    repository: layer5labs/meshery-extensions-packages
+    repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |
       assets
       # Add only specific directories needed
@@ -66,7 +66,7 @@ This repository is part of a multi-repository CI/CD pipeline:
 - **Relationship**: **Upstream** - This is where code is written
 - **Interaction**: CI/CD builds code and publishes artifacts **TO** this repo
 
-### 4. **[layer5labs/meshery-extensions-packages](https://github.com/layer5labs/meshery-extensions-packages)** (This Repository)
+### 4. **[meshery-extensions/meshery-extensions-packages](https://github.com/meshery-extensions/meshery-extensions-packages)** (This Repository)
 - **Role**: Artifact registry and distribution channel
 - **Relationship**: **Downstream** - Receives built artifacts
 - **Interaction**: Stores build outputs for distribution

@@ -68,7 +68,7 @@ jobs:
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
-          message: "Starting Cloud Server tests ([takes approximately 8 min end-to-end](https://github.com/layer5labs/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
+          message: "Starting Cloud Server tests ([takes approximately 8 min end-to-end](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
           append: false
           recreate: true
 
@@ -287,7 +287,7 @@ jobs:
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-ui-tests
-          message: "Starting Cloud UI tests ([workflow run](https://github.com/layer5labs/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
+          message: "Starting Cloud UI tests ([workflow run](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
           append: false
           recreate: true
 
@@ -450,7 +450,7 @@ jobs:
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-e2e-tests
-          message: "Starting Cloud Playwright e2e ([workflow run](https://github.com/layer5labs/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
+          message: "Starting Cloud Playwright e2e ([workflow run](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
           append: false
           recreate: true
 

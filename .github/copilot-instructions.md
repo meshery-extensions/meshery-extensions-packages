@@ -1,6 +1,6 @@
 # GitHub Copilot Coding Agent Instructions for meshery-extensions-packages
 
-This document provides comprehensive instructions for GitHub Copilot coding agents working on the [meshery-extensions-packages](https://github.com/layer5labs/meshery-extensions-packages) repository.
+This document provides comprehensive instructions for GitHub Copilot coding agents working on the [meshery-extensions-packages](https://github.com/meshery-extensions/meshery-extensions-packages) repository.
 
 ## Repository Overview
 
@@ -40,7 +40,7 @@ The `meshery-extensions-packages` repository is a multi-function repository that
 
 ```bash
 # Correct sparse checkout approach
-git clone --filter=blob:none --sparse https://github.com/layer5labs/meshery-extensions-packages
+git clone --filter=blob:none --sparse https://github.com/meshery-extensions/meshery-extensions-packages
 git sparse-checkout add assets
 ```
 
@@ -49,7 +49,7 @@ git sparse-checkout add assets
 ```yaml
 - uses: actions/checkout@v4
   with:
-    repository: layer5labs/meshery-extensions-packages
+    repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |
       assets/badges
       email
