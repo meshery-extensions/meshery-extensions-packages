@@ -23,58 +23,14 @@ jobs:
     outputs:
       revision: ${{ steps.fetch-versions.outputs.REVISION }}
     steps:
-      - name: Select GitHub token for cross-repo access
-        id: select-github-token
-        env:
-          GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
-          GLOBAL_TOKEN: ${{ secrets.GLOBAL_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          can_access_repo() {
-            local token="$1"
-            [ -n "$token" ] || return 1
-            curl -fsS \
-              -H "Authorization: Bearer $token" \
-              -H "Accept: application/vnd.github+json" \
-              https://api.github.com/repos/layer5labs/meshery-extensions >/dev/null
-          }
-
-          if can_access_repo "$GH_ACCESS_TOKEN"; then
-            selected_token="$GH_ACCESS_TOKEN"
-            selected_name="GH_ACCESS_TOKEN"
-          elif can_access_repo "$GLOBAL_TOKEN"; then
-            selected_token="$GLOBAL_TOKEN"
-            selected_name="GLOBAL_TOKEN"
-            echo "::warning::GH_ACCESS_TOKEN cannot access layer5labs/meshery-extensions; using GLOBAL_TOKEN instead."
-          else
-            message="Neither GH_ACCESS_TOKEN nor GLOBAL_TOKEN can access layer5labs/meshery-extensions."
-            echo "reason=$message" >> "$GITHUB_ENV"
-            echo "::error::$message"
-            exit 1
-          fi
-
-          echo "::add-mask::$selected_token"
-          echo "token=$selected_token" >> "$GITHUB_OUTPUT"
-          echo "token_name=$selected_name" >> "$GITHUB_OUTPUT"
-    
       - name: Checkout meshery-extensions
         uses: actions/checkout@v6
         with:
-          token: ${{ steps.select-github-token.outputs.token }}
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
           repository: layer5labs/meshery-extensions
           path: "meshery-extensions"
           fetch-depth: 1
           ref: ${{ inputs.branch }}
-
-      # - name: Checkout meshery-cloud
-      #   uses: actions/checkout@v6
-      #   with:
-      #     token: ${{ secrets.GH_ACCESS_TOKEN }}
-      #     repository: layer5io/meshery-cloud
-      #     path: "meshery-cloud"
-      #     fetch-depth: 1
-      #     ref: master
 
       - name: Get latest version for meshery and meshery-extensions
         id: fetch-versions
@@ -109,7 +65,7 @@ jobs:
         if: ${{ inputs.version }}
         uses: actions/checkout@v6
         with:
-          token: ${{ steps.select-github-token.outputs.token }}
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
           repository: layer5labs/meshery-extensions
           path: "meshery-extensions"
           fetch-depth: 1
@@ -176,7 +132,7 @@ jobs:
           ls .
       - name: Get Meshery Extensions Release draft
         env:
-          ACCESS_TOKEN: ${{ steps.select-github-token.outputs.token }}
+          ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
         run: |
           curl -sL -H "Authorization: token $ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/layer5labs/meshery-extensions/releases | jq -r 'map(select(.draft)) | first | .body' > releases.md
       - name: Release Draft Notes
@@ -193,7 +149,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           repo: meshery-extensions-packages
-          token: ${{ steps.select-github-token.outputs.token }}
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
           tag: ${{ env.LATEST_EXTENSION_VERSION }}
           name: Meshery Extensions ${{ env.LATEST_EXTENSION_VERSION }}
           allowUpdates: true
@@ -207,7 +163,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           repo: meshery-extensions
-          token: ${{ steps.select-github-token.outputs.token }}
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
           tag: ${{ env.LATEST_EXTENSION_VERSION }}
           name: Meshery Extensions ${{ env.LATEST_EXTENSION_VERSION }}
           allowUpdates: true
