@@ -1,26 +1,39 @@
-<p style="text-align:center;" align="center">
-      <picture align="center">
-         <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/meshery-extensions/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-light-no-trim.svg" />
-         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/meshery-extensions/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-no-trim.svg" />
-         <img align="center" src="https://raw.githubusercontent.com/meshery-extensions/meshery-extensions-packages/master/.github/assets/images/layer5/layer5-no-trim.svg" alt="Shows a dark layer5 logo in light mode and a white logo in dark mode" width="45%"/>
-      </picture>
-</p>
+<div>
+    <!-- Top section -->
+    <div>
+        <img src="https://raw.githubusercontent.com/meshery-extensions/.github/master/profile/assets/img/meshery-extensions-github.png" usemap="#workmap"  />
+    </div>
+    <!-- Overview section -->
+    <div align="center">
+        <h3>Meshery is an extensible, self-service engineering plaform for the collaborative management of cloud and cloud native infrastructure.</h3>
+        <h3 align="center"><a href="https://meshery.io/extensions">Browse all extensions</a></h3>
+        <h5 align="center">
+            <a href="https://meshery.io#getting-started">Installation</a> |
+            <a href="https://docs.meshery.io">Documentation</a> |
+            <a href="https://meshery.io/community#discussion-forums">Forum</a> |
+            <a href="https://play.meshery.io">Playground</a> |
+            <a href="https://meshery.io/catalog">Catalog</a>
+        </h5>
+        <br />
+    </div>
+    
+[Meshery Extensions](https://meshery.io/extension) are plugins or add-ons that enhance the functionality of the Meshery platform beyond its core capabilities. Meshery supports different types of extensions ([docs](https://docs.meshery.io/extensions/)):
 
-<p align="center">
-<a href="https://github.com/layer5io/layer5" alt="GitHub contributors">
-<img src="https://img.shields.io/github/contributors/layer5io/layer5.svg" /></a>
-<a href="https://github.com/issues?q=is%3Aopen+is%3Aissue+archived%3Afalse+(org%3Alayer5io+OR+org%3Ameshery+OR+org%3Ameshery-extensions+OR+org%3Alayer5labs+OR+org%3Aservice-mesh-performance+OR+org%3Aservice-mesh-patterns+OR+org%3Ameshery-extensions)+label%3A%22help+wanted%22" alt="Help wanted GitHub issues">
-<img src="https://img.shields.io/github/issues/layer5io/layer5/help%20wanted.svg?color=%23DDDD00" /></a>
-<a href="https://slack.layer5.io" alt="Slack">
-<img src="https://img.shields.io/badge/Slack-@layer5.svg?logo=slack" /></a>
-<a href="https://twitter.com/layer5" alt="Twitter Follow">
-<img src="https://img.shields.io/twitter/follow/layer5.svg?label=Follow+Layer5&style=social" /></a>
-<a href="https://github.com/layer5io/layer5" alt="License">
-<img src="https://img.shields.io/github/license/layer5io/layer5.svg" /></a>
-</p>
-
-<h5><p align="center"><i>If you’re using Layer5 products or if you like the project, please <a href="https://github.com/layer5io/layer5/stargazers">★</a> this repository to show your support! 🤩</i></p></h5>
-
+- [Adapters](https://docs.meshery.io/concepts/architecture/adapters): Adapters allow Meshery to interface with the different cloud native infrastructure.
+- [Load Generators](https://docs.meshery.io/extensibility/load-generators): for performance characterization and benchmarking
+- [Integrations](https://docs.meshery.io/extensibility/integrations): model-based support for a broad variety of design and orchestration of cloud and cloud native platforms, tools, and technologies.
+- [Providers](https://docs.meshery.io/extensibility/providers): for connecting to different cloud providers and infrastructure platforms
+- [UI Plugins](https://docs.meshery.io/extensibility/ui): Meshery UI has a number of extension points that allow users to customize their experience with third-party plugins.
+- [CLI Plugins](https://docs.meshery.io/extensibility/cli-plugins): Helm and kubectl plugins that let you create Kanvas snapshots from Helm charts, Kubernetes manifests, and the current state of your Kubernetes cluster, then upload them to Meshery.
+<!-- Blog Post and Explanation section -->
+<!-- Video Section -->
+<h3 align="center">See Meshery and it's plugins in-action</h3>
+    <img src="https://raw.githubusercontent.com/meshery/.github/master/profile/assets/img/meshery-dashboard-hero-image.png"  />
+<!--     <div align="center"><i>Example extension. See other <a href="https://meshery.io/extensions">Meshery Extensions</a>.<i></div>
+    <br /> -->
+    <!-- Repositories section -->
+    <div>
+        <h2>Repo Overview</h2>
 <br />
 
 > [!WARNING]
@@ -42,9 +55,6 @@
 > git sparse-checkout reapply
 > ```
 
-
-## Repo Overview
-
 ℹ️ This repository has multiple functions.
 
 ### Function 1: Cloud and Kanvas assets
@@ -63,11 +73,11 @@
     5. `/assets/kanvas/getting-started/`: Stores images used in the Kanvas Getting Started section in webp format.
     
 
-### Function 2: Layer5 Cloud Remote Provider Packages
-Access Layer5 Cloud at https://cloud.layer5.io 
+### Function 2: Meshery Cloud Remote Provider Packages
+Access Meshery Cloud at https://cloud.meshery.io 
 
 **Relevant Directories**
-- `/email`: Contains html emails templates, svgs/png to be used for emails sent for `layer5-cloud` and other newsletter html templates.
+- `/email`: Contains html emails templates, svgs/png to be used for emails sent for `meshery-cloud` and other newsletter html templates.
 - See the aftifacts under each [Release](https://github.com/meshery-extensions/meshery-extensions-packages/releases).
 
 ### Function 3: Images taken by Kanvas Snapshots
@@ -85,20 +95,37 @@ Find out more at https://meshery.io/extensions/github-action-meshery-snapshot
 
 
 ### Function 4: Embeded Meshery Design
-Meshery Design Embedding ([docs](https://docs.layer5.io/kanvas/designer/embedding-designs/)) enables you to export a design in a format that can be seamlessly integrated into websites, blogs, or platforms supporting HTML, CSS, and JavaScript. This embedded version provides an interactive representation of the design, making it easier to share with infrastructure stakeholders.
+Meshery Design Embedding (docs](https://meshery.io/extensions)) enables you to export a design in a format that can be seamlessly integrated into websites, blogs, or platforms supporting HTML, CSS, and JavaScript. This embedded version provides an interactive representation of the design, making it easier to share with infrastructure stakeholders.
 
 **Relevant Directories**
 - `/meshery-design-embed`: Contains the exported design files, including HTML, CSS, JavaScript, and assets like images and fonts. These files can be directly embedded into web pages or applications to showcase the design interactively.
 
-
-## About Layer5
-
-Layer5's cloud native application and infrastructure management software enables organizations to expect more from their infrastructure. We embrace _developer_-defined infrastructure. We empower developers to change how they write applications, support _operators_ in rethinking how they run modern infrastructure, and enable _product owners_ to regain full-control over their product portfolio.
-
-
-## Join the Community
-We invite newcomers and experienced contributors alike to join the Meshery and Layer5 communities:
-- Participate in meetings listed on the [Community Calendar](https://meet.layer5.io).
-- Watch recorded meetings and presentations in the [Community Playlist](https://youtube.com/Layer5io?sub_confirmation=1).
-- Get started by submitting the [Newcomer Form](https://layer5.io/newcomer) .to gain access to community resources and tools.
-- If you have questions, join the [Community Slack](https://slack.layer5.io) or ask in the [Discussion Forum](https://discuss.layer5.io/).
+          
+    </div>
+    <!-- Contributing and Guidelines -->
+    <div>
+        <h2>Community and Contributing</h2>
+        <p>Please do! Code and non-code contributions are welcome. This project is community-built and fosters collaboration. Contributors are expected to adhere to the <a href="https://github.com/cncf/foundation/blob/main/code-of-conduct.md"> CNCF Code of Conduct</a>.
+        </p>
+        <p>Jump into our <a href="https://slack.meshery.io">Slack</a>! Submit your <a href="https://meshery.io/newcomers">community member form</a> access to additional resources. Don't forget to join the <a href="https://meshery.io/calendar">Newcomers meeting</a> held every Thursday!
+        </p>
+        <img src="https://raw.githubusercontent.com/meshery/meshery/refs/heads/master/.github/assets/images/readme/community.png"
+            style="margin:10px;" width="180px" alt="Community" align="right" />
+        <ul>
+            ✔️ <b>Star</b> ⭐ the main <a href="https://github.com/meshery/meshery">meshery repo</a><br />
+            ✔️ <b>Join</b> any or all of the weekly meetings on the <a href="https://meet.meshery.io">community
+                    calendar</a><br />
+            ✔️ <b>Watch</b> <a
+                    href="https://www.youtube.com/@mesheryio?sub_confirmation=1">community meeting
+                    recordings</a><br />
+            <p>✔️ <b>Access</b> resources by completing a <a href="https://meshery.io/newcomers"> community member form
+                </a><br />
+            ✔️ <b>Discuss</b> in a Meshery <a href="https://meshery.io/community#discussion-forums">Community forum</a><br />
+            ✔️ Not sure where to start? <b>Grab</b> an open issue with the <a
+                    href="https://github.com/issues?q=is%3Aopen+is%3Aissue+archived%3Afalse+(org%3Ameshery+OR+org%3Aservice-mesh-performance+OR+org%3Aservice-mesh-patterns+OR+org%3Ameshery-extensions)+label%3A%22help+wanted%22">help-wanted
+                    label</a><br />
+        </ul>
+    </div>
+    <!-- Footer Section -->
+    <img src="https://raw.githubusercontent.com/meshery/.github/master/profile/assets/img/footer.png" align="center" />
+</div>
