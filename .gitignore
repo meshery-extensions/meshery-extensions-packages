@@ -48,3 +48,5 @@ site/yarn-error.log*
 .github/.DS_Store
 
 node_modules
+
+.claude/worktrees
