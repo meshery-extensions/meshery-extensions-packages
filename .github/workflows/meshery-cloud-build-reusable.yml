@@ -179,7 +179,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./meshery-cloud
+          context: https://github.com/layer5io/meshery-cloud.git#refs/pull/${{ inputs.pr_number }}/head
           build-args: |
             ENVIRONMENT="staging"
             GIT_VERSION=staging-${{env.PR_NUMBER}}
