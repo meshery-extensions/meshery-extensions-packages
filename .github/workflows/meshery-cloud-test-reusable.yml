@@ -20,7 +20,7 @@ on:
       node_version:
         description: "Node.js version for UI tests"
         required: false
-        default: '20.x'
+        default: "22.x"
         type: string
     secrets:
       GH_ACCESS_TOKEN:
@@ -44,7 +44,7 @@ on:
       node_version:
         description: "Node.js version for UI tests"
         required: false
-        default: '20.x'
+        default: "22.x"
         type: string
 
 jobs:

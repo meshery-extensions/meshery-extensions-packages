@@ -33,7 +33,7 @@ jobs:
     with:
       pr_commit_sha: ${{inputs.pr_commit_sha}}
       pr_number: ${{inputs.pr_number}}
-      node_version: ${{inputs.node_version || vars.NODE_VERSION || '20.x'}}
+      node_version: ${{inputs.node_version || vars.NODE_VERSION || '22.x'}}
 
   test:
     uses: ./.github/workflows/meshery-cloud-test-reusable.yml
@@ -42,4 +42,4 @@ jobs:
     with:
       pr_commit_sha: ${{inputs.pr_commit_sha}}
       pr_number: ${{inputs.pr_number}}
-      node_version: ${{inputs.node_version || vars.NODE_VERSION || '20.x'}}
+      node_version: ${{inputs.node_version || vars.NODE_VERSION || '22.x'}}

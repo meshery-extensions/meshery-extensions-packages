@@ -11,7 +11,7 @@ on:
       node_version:
         description: "Node.js version for UI build/tests"
         required: false
-        default: '20.x'
+        default: "22.x"
         type: string
     secrets:
       PROVIDER_TOKEN:

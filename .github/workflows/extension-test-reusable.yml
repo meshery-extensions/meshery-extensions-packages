@@ -157,7 +157,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          node-version: "20.x"
+          node-version: "22.x"
 
       # Moved up: checkout has no dependency on Kind/Docker and can
       # run while those slower steps proceed.
