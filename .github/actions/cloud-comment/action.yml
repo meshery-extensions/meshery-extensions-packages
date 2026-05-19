@@ -21,6 +21,7 @@ runs:
   steps:
     - name: Post comment
       if: ${{ env.PR_NUMBER != '' }}
+      continue-on-error: true
       uses: hasura/comment-progress@v2.3.0
       with:
         github-token: ${{ env.GITHUB_TOKEN }}

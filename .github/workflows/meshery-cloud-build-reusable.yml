@@ -48,6 +48,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Set pending commit status
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -91,7 +92,6 @@ jobs:
           path: ./meshery-cloud
           fetch-depth: 1
           ref: refs/pull/${{ inputs.pr_number }}/head
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: comment success
         if: success()
         uses: ./.github/actions/cloud-comment
@@ -179,9 +179,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: https://github.com/layer5io/meshery-cloud.git#refs/pull/${{ inputs.pr_number }}/head
-          secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.GH_ACCESS_TOKEN }}
+          context: ./meshery-cloud
           build-args: |
             ENVIRONMENT="staging"
             GIT_VERSION=staging-${{env.PR_NUMBER}}
@@ -252,6 +250,7 @@ jobs:
     needs: [build-meshery-cloud]
     steps:
       - name: Set final commit status
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}

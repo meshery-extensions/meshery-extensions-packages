@@ -78,7 +78,6 @@ jobs:
         with:
           repository: layer5io/meshery-cloud
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 1
           path: meshery-cloud
 
@@ -190,7 +189,9 @@ jobs:
       # The sync is intentionally ungated on test outcome — failing runs must
       # land so the dashboard reflects every CI run.
       - name: Checkout QA
+        id: checkout-qa
         if: ${{ !cancelled() }}
+        continue-on-error: true
         uses: actions/checkout@v6
         with:
           repository: meshery-extensions/qa
@@ -198,7 +199,7 @@ jobs:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Sync server test results to qa
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
         run: |
           set -euo pipefail
           if [ -n "${{ inputs.pr_number }}" ]; then
@@ -218,7 +219,8 @@ jobs:
           echo "meshery-server-results: $(find "$SERVER_DEST" -type f | wc -l) file(s)"
 
       - name: Commit & push server results to qa
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        continue-on-error: true
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "[Cloud] Sync server test results - ${GITHUB_SHA}"
@@ -297,7 +299,6 @@ jobs:
         with:
           repository: layer5io/meshery-cloud
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 1
           path: meshery-cloud
 
@@ -392,7 +393,9 @@ jobs:
       # Until meshery-cloud wires an allure-jest reporter into the ui target,
       # meshery-cloud/ui/allure-results will be empty and this step no-ops.
       - name: Checkout QA
+        id: checkout-qa
         if: ${{ !cancelled() }}
+        continue-on-error: true
         uses: actions/checkout@v6
         with:
           repository: meshery-extensions/qa
@@ -400,7 +403,7 @@ jobs:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Sync UI test results to qa
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
         run: |
           set -euo pipefail
           if [ -n "${{ inputs.pr_number }}" ]; then
@@ -417,7 +420,8 @@ jobs:
           echo "remote-provider-results (UI): $(find "$UI_DEST" -type f | wc -l) file(s)"
 
       - name: Commit & push UI results to qa
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        continue-on-error: true
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "[Cloud] Sync UI test results - ${GITHUB_SHA}"
@@ -459,7 +463,6 @@ jobs:
         with:
           repository: layer5io/meshery-cloud
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 1
           path: meshery-cloud
 
@@ -525,7 +528,9 @@ jobs:
       # Publish Playwright e2e results to qa.meshery.io. Runs on pass or
       # fail. PR runs route under pr-reports/<N>/.
       - name: Checkout QA
+        id: checkout-qa
         if: ${{ !cancelled() }}
+        continue-on-error: true
         uses: actions/checkout@v6
         with:
           repository: meshery-extensions/qa
@@ -537,7 +542,7 @@ jobs:
       # this job because no other parallel job writes to the same subtree
       # within this run (the ui-tests Jest sync is currently a no-op).
       - name: Sync e2e results to qa
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
         run: |
           set -euo pipefail
           if [ -n "${{ inputs.pr_number }}" ]; then
@@ -555,7 +560,8 @@ jobs:
           echo "remote-provider-results (e2e): $(find "$E2E_DEST" -type f | wc -l) file(s)"
 
       - name: Commit & push e2e results to qa
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        continue-on-error: true
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "[Cloud] Sync e2e results - ${GITHUB_SHA}"
