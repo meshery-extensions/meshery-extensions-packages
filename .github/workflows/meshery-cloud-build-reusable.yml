@@ -48,20 +48,27 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Set pending commit status
-        continue-on-error: true
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
           script: |
-            await github.rest.repos.createCommitStatus({
-              owner: 'layer5io',
-              repo: 'meshery-cloud',
-              sha: '${{ inputs.pr_commit_sha }}',
-              state: 'pending',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-              description: 'Cloud build and tests in progress...',
-              context: 'Meshery Cloud Build'
-            });
+            try {
+              await github.rest.repos.createCommitStatus({
+                owner: 'layer5io',
+                repo: 'meshery-cloud',
+                sha: '${{ inputs.pr_commit_sha }}',
+                state: 'pending',
+                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                description: 'Cloud build and tests in progress...',
+                context: 'Meshery Cloud Build'
+              });
+            } catch (error) {
+              if (error.status === 401 || error.status === 403) {
+                core.warning(`Skipping pending commit status update for layer5io/meshery-cloud: ${error.message}`);
+                return;
+              }
+              throw error;
+            }
   build-meshery-cloud:
     name: Server Build
     runs-on: ubuntu-24.04
@@ -250,7 +257,6 @@ jobs:
     needs: [build-meshery-cloud]
     steps:
       - name: Set final commit status
-        continue-on-error: true
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -263,12 +269,20 @@ jobs:
               cancelled: 'Cloud build was cancelled',
               skipped: 'Cloud build was skipped',
             };
-            await github.rest.repos.createCommitStatus({
-              owner: 'layer5io',
-              repo: 'meshery-cloud',
-              sha: '${{ inputs.pr_commit_sha }}',
-              state,
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-              description: descriptions[buildResult] || descriptions.failure,
-              context: 'Meshery Cloud Build'
-            });
+            try {
+              await github.rest.repos.createCommitStatus({
+                owner: 'layer5io',
+                repo: 'meshery-cloud',
+                sha: '${{ inputs.pr_commit_sha }}',
+                state,
+                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                description: descriptions[buildResult] || descriptions.failure,
+                context: 'Meshery Cloud Build'
+              });
+            } catch (error) {
+              if (error.status === 401 || error.status === 403) {
+                core.warning(`Skipping final commit status update for layer5io/meshery-cloud: ${error.message}`);
+                return;
+              }
+              throw error;
+            }
