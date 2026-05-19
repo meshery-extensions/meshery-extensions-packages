@@ -20,10 +20,6 @@ on:
         required: true
       GH_ACCESS_TOKEN:
         required: true
-      LAYER5_CLOUD_USERNAME:
-        required: true
-      LAYER5_CLOUD_PASSWORD:
-        required: true
       LAYER5_CLOUD_TESTING_BOT_EMAIL:
         required: true
       LAYER5_CLOUD_TESTING_BOT_PASSWORD:
