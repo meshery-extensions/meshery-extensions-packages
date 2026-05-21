@@ -129,7 +129,10 @@ jobs:
         id: unit-tests
         continue-on-error: true
         working-directory: meshery-cloud
-        run: make server-tests-unit 2>&1 | tee /tmp/unit-test-output.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          make server-tests-unit 2>&1 | tee /tmp/unit-test-output.txt
 
       - name: Comment unit tests success
         if: steps.unit-tests.outcome == 'success'
@@ -163,9 +166,9 @@ jobs:
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
               BLOCKS=$(grep -E "^--- FAIL:|^FAIL[[:space:]]|Error:|panic:|cannot " "$OUTPUT" 2>/dev/null | head -40 || true)
             fi
-            # Final fallback: last 50 lines
+            # Final fallback: safe message pointing to full logs (avoids posting raw output)
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
-              BLOCKS=$(tail -n 50 "$OUTPUT")
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
             BLOCKS=$(echo "$BLOCKS" | head -c 5000)
           fi
@@ -195,7 +198,10 @@ jobs:
         continue-on-error: true
         if: ${{ inputs.run_integration_tests }}
         working-directory: meshery-cloud
-        run: make ENVIRONMENT=staging server-tests-integration 2>&1 | tee /tmp/integration-test-output.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          make ENVIRONMENT=staging server-tests-integration 2>&1 | tee /tmp/integration-test-output.txt
 
       - name: Comment integration tests success
         if: steps.integration-tests.outcome == 'success'
@@ -234,7 +240,7 @@ jobs:
               BLOCKS=$(grep -E "^--- FAIL:|^FAIL[[:space:]]|Error:|panic:|cannot " "$OUTPUT" 2>/dev/null | head -40 || true)
             fi
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
-              BLOCKS=$(tail -n 50 "$OUTPUT")
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
             BLOCKS=$(echo "$BLOCKS" | head -c 5000)
           fi
@@ -458,7 +464,10 @@ jobs:
         id: ui-tests
         continue-on-error: true
         working-directory: meshery-cloud
-        run: make ui-tests 2>&1 | tee /tmp/ui-test-output.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          make ui-tests 2>&1 | tee /tmp/ui-test-output.txt
 
       - name: Upload UI test results
         if: always()
@@ -503,7 +512,7 @@ TypeScript errors:
 ${TSC}"
             fi
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
-              BLOCKS=$(tail -n 50 "$OUTPUT")
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
             BLOCKS=$(echo "$BLOCKS" | head -c 5000)
           fi
@@ -651,7 +660,10 @@ ${TSC}"
         working-directory: meshery-cloud/ui
         env:
           ALLURE_RESULTS_DIR: ${{ github.workspace }}/meshery-cloud/ui/allure-results
-        run: npm run e2e 2>&1 | tee /tmp/e2e-output.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run e2e 2>&1 | tee /tmp/e2e-output.txt
 
       - name: Comment e2e success
         if: steps.e2e.outcome == 'success'
@@ -677,7 +689,7 @@ ${TSC}"
             BLOCKS=$(grep -E "✗|✘|×| FAILED |Error:|expect\\(received\\)" \
               "$OUTPUT" 2>/dev/null | head -50 || true)
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
-              BLOCKS=$(tail -n 50 "$OUTPUT")
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
             BLOCKS=$(echo "$BLOCKS" | head -c 5000)
           fi
