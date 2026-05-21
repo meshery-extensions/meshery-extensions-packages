@@ -507,9 +507,7 @@ jobs:
             BLOCKS=""
             [ -n "$JEST" ] && BLOCKS="$JEST"
             if [ -n "$TSC" ]; then
-              BLOCKS="${BLOCKS}
-TypeScript errors:
-${TSC}"
+              printf -v BLOCKS '%s\nTypeScript errors:\n%s' "$BLOCKS" "$TSC"
             fi
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
               BLOCKS="(no specific failure patterns matched — see full logs for details)"
