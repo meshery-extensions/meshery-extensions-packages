@@ -52,7 +52,7 @@ jobs:
         id: test-results
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-test-results
           path: meshery-extensions/tests/test-results/
           retention-days: 14
       - name: Send Email on Production Release Failure
