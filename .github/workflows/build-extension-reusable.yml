@@ -50,7 +50,7 @@ jobs:
         with:
           node-version: ${{ secrets.NODE_VERSION }}
           cache: "npm"
-          cache-dependency-path: 'meshery-extensions/meshmap/package-lock.json'
+          cache-dependency-path: 'meshery-extensions/ui/package-lock.json'
 
       - name: Verify go.mod sync compatibility
         working-directory: meshery-extensions

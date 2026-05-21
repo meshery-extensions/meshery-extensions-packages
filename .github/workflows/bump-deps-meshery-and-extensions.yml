@@ -103,7 +103,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: '**/package-lock.json'
       - name: Make changes to pull request
-        working-directory: meshmap
+        working-directory: ui
         run: npm install ${{github.event.inputs.dependencies}}@${{ github.event.inputs.version }}
       - name: Create Pull Request
         id: cpr
@@ -118,8 +118,8 @@ jobs:
           delete-branch: true
           title: '[Chore]: Bump ${{github.event.inputs.dependencies}} v${{ github.event.inputs.version }}'
           add-paths: |
-            meshmap/package.json
-            meshmap/package-lock.json
+            ui/package.json
+            ui/package-lock.json
           body: |
             Update to ${{github.event.inputs.dependencies}} v${{ github.event.inputs.version }}
             
