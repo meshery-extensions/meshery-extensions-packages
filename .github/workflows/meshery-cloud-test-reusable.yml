@@ -129,7 +129,10 @@ jobs:
         id: unit-tests
         continue-on-error: true
         working-directory: meshery-cloud
-        run: make server-tests-unit
+        shell: bash
+        run: |
+          set -o pipefail
+          make server-tests-unit 2>&1 | tee /tmp/unit-test-output.txt
 
       - name: Comment unit tests success
         if: steps.unit-tests.outcome == 'success'
@@ -143,6 +146,50 @@ jobs:
         with:
           id: cloud-tests
           message: ":x: Unit tests failed. Running integration tests..."
+
+      - name: Extract unit test failure details
+        if: steps.unit-tests.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/unit-test-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            # Extract Go "--- FAIL:" blocks with indented context lines
+            BLOCKS=$(awk '
+              /^--- FAIL:/ { in_fail=1; out=out"\n"$0; next }
+              in_fail && /^[[:space:]]/ { out=out"\n"$0; next }
+              in_fail { in_fail=0 }
+              /^FAIL[[:space:]]/ { out=out"\n"$0 }
+              END { print out }
+            ' "$OUTPUT" 2>/dev/null)
+            # Fallback: grep for error indicators
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS=$(grep -E "^--- FAIL:|^FAIL[[:space:]]|Error:|panic:|cannot " "$OUTPUT" 2>/dev/null | head -40 || true)
+            fi
+            # Final fallback: safe message pointing to full logs (avoids posting raw output)
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'UNIT_FAILURES<<EOF_unit_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_unit_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment unit test failure details
+        if: steps.unit-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: |
+            <details><summary>:mag: Server unit test failures</summary>
+
+            ```
+            ${{ env.UNIT_FAILURES }}
+            ```
+
+            </details>
       #------------------------------------------
 
       #------------------------------------------
@@ -151,7 +198,10 @@ jobs:
         continue-on-error: true
         if: ${{ inputs.run_integration_tests }}
         working-directory: meshery-cloud
-        run: make ENVIRONMENT=staging server-tests-integration
+        shell: bash
+        run: |
+          set -o pipefail
+          make ENVIRONMENT=staging server-tests-integration 2>&1 | tee /tmp/integration-test-output.txt
 
       - name: Comment integration tests success
         if: steps.integration-tests.outcome == 'success'
@@ -171,6 +221,47 @@ jobs:
         with:
           id: cloud-tests
           message: ":fast_forward: Integration tests skipped (not requested)."
+
+      - name: Extract integration test failure details
+        if: steps.integration-tests.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/integration-test-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            BLOCKS=$(awk '
+              /^--- FAIL:/ { in_fail=1; out=out"\n"$0; next }
+              in_fail && /^[[:space:]]/ { out=out"\n"$0; next }
+              in_fail { in_fail=0 }
+              /^FAIL[[:space:]]/ { out=out"\n"$0 }
+              END { print out }
+            ' "$OUTPUT" 2>/dev/null)
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS=$(grep -E "^--- FAIL:|^FAIL[[:space:]]|Error:|panic:|cannot " "$OUTPUT" 2>/dev/null | head -40 || true)
+            fi
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'INTEGRATION_FAILURES<<EOF_int_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_int_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment integration test failure details
+        if: steps.integration-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: |
+            <details><summary>:mag: Integration test failures</summary>
+
+            ```
+            ${{ env.INTEGRATION_FAILURES }}
+            ```
+
+            </details>
       #------------------------------------------
 
       #------------------------------------------
@@ -371,8 +462,12 @@ jobs:
       #------------------------------------------
       - name: Run UI tests
         id: ui-tests
+        continue-on-error: true
         working-directory: meshery-cloud
-        run: make ui-tests
+        shell: bash
+        run: |
+          set -o pipefail
+          make ui-tests 2>&1 | tee /tmp/ui-test-output.txt
 
       - name: Upload UI test results
         if: always()
@@ -395,6 +490,54 @@ jobs:
         with:
           id: cloud-ui-tests
           message: ":x: Cloud UI tests failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+
+      - name: Extract UI test failure details
+        if: steps.ui-tests.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/ui-test-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            # Jest failures: FAIL file lines and ● bullet error descriptions
+            JEST=$(grep -E "^FAIL |^FAIL$|^ +● |^  ●|Tests:.*failed|Test Suites:.*failed|TypeError|ReferenceError" \
+              "$OUTPUT" 2>/dev/null | head -60 || true)
+            # TypeScript compiler errors (tsc --noEmit)
+            TSC=$(grep -E "\.tsx?:[0-9]+:[0-9]+ - error TS[0-9]+" \
+              "$OUTPUT" 2>/dev/null | head -20 || true)
+            BLOCKS=""
+            [ -n "$JEST" ] && BLOCKS="$JEST"
+            if [ -n "$TSC" ]; then
+              BLOCKS="${BLOCKS}
+TypeScript errors:
+${TSC}"
+            fi
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'UI_FAILURES<<EOF_ui_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_ui_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment UI test failure details
+        if: steps.ui-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: |
+            <details><summary>:mag: UI test failures</summary>
+
+            ```
+            ${{ env.UI_FAILURES }}
+            ```
+
+            </details>
+
+      - name: Fail UI tests job
+        if: steps.ui-tests.outcome == 'failure'
+        run: exit 1
       #------------------------------------------
 
       #------------------------------------------
@@ -517,7 +660,10 @@ jobs:
         working-directory: meshery-cloud/ui
         env:
           ALLURE_RESULTS_DIR: ${{ github.workspace }}/meshery-cloud/ui/allure-results
-        run: npm run e2e
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run e2e 2>&1 | tee /tmp/e2e-output.txt
 
       - name: Comment e2e success
         if: steps.e2e.outcome == 'success'
@@ -531,6 +677,40 @@ jobs:
         with:
           id: cloud-e2e-tests
           message: ":x: Cloud Playwright e2e tests failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+
+      - name: Extract e2e failure details
+        if: steps.e2e.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/e2e-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            # Playwright failure patterns: ✗/✘/× symbols, FAILED lines, errors
+            BLOCKS=$(grep -E "✗|✘|×| FAILED |Error:|expect\\(received\\)" \
+              "$OUTPUT" 2>/dev/null | head -50 || true)
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'E2E_FAILURES<<EOF_e2e_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_e2e_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment e2e failure details
+        if: steps.e2e.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-e2e-tests
+          message: |
+            <details><summary>:mag: Playwright e2e failures</summary>
+
+            ```
+            ${{ env.E2E_FAILURES }}
+            ```
+
+            </details>
 
       - name: Upload e2e test results
         if: always()
