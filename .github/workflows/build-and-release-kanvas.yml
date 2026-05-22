@@ -9,7 +9,7 @@ on:
         description: "Revision of Extension (e.g. 1)"
         required: false
       branch:
-        description: Branch of `meshery-extensions` repository to deploy.
+        description: Branch of `meshery-extensions` repository to use for the initial checkout. Use `version` and `revision` for release tags.
         required: false
         default: master
 
@@ -21,8 +21,39 @@ jobs:
       MESHERY_EXTENSIONS_PATH: ${{ github.workspace }}/meshery-extensions
       EXTENSION_BUILD_ROOT: /home/runner/.meshery/provider/Layer5
     outputs:
-      revision: ${{ steps.fetch-versions.outputs.REVISION }}
+      revision: ${{ steps.effective-release-values.outputs.REVISION }}
     steps:
+      - name: Resolve meshery-extensions checkout ref
+        env:
+          INPUT_BRANCH: ${{ inputs.branch }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_REVISION: ${{ inputs.revision }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$INPUT_VERSION" && -z "$INPUT_REVISION" ]]; then
+            echo "Input 'revision' is required when 'version' is provided." >&2
+            exit 1
+          fi
+
+          if [[ -n "$INPUT_REVISION" && -z "$INPUT_VERSION" ]]; then
+            echo "Input 'version' is required when 'revision' is provided." >&2
+            exit 1
+          fi
+
+          checkout_ref="${INPUT_BRANCH:-master}"
+          if [[ "$checkout_ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$ ]]; then
+            if [[ -n "$INPUT_VERSION" ]]; then
+              echo "::warning::Input 'branch' looks like a release tag (${checkout_ref}); using master for the initial checkout and ${INPUT_VERSION}-${INPUT_REVISION} for the release checkout."
+              checkout_ref="master"
+            else
+              echo "Input 'branch' looks like a release tag (${checkout_ref}). Use 'version' and 'revision' for release tags, or provide a real branch name." >&2
+              exit 1
+            fi
+          fi
+
+          echo "INITIAL_EXTENSION_REF=$checkout_ref" >> "$GITHUB_ENV"
+
       - name: Checkout meshery-extensions
         uses: actions/checkout@v6
         with:
@@ -30,7 +61,7 @@ jobs:
           repository: layer5labs/meshery-extensions
           path: "meshery-extensions"
           fetch-depth: 1
-          ref: ${{ inputs.branch }}
+          ref: ${{ env.INITIAL_EXTENSION_REF }}
 
       - name: Get latest version for meshery and meshery-extensions
         id: fetch-versions
@@ -51,7 +82,7 @@ jobs:
           echo "EXTENSION_VERSION=$EXTENSION_VERSION"
           echo "EXTENSION_REVISION=$EXTENSION_REVISION"
           echo "LATEST_EXTENSION_VERSION=$MESHERY_VERSION-$EXTENSION_REVISION"
-          echo "REVISION=$REVISION"
+          echo "REVISION=$EXTENSION_REVISION"
       - name: Override version and revision, if provided
         if: ${{ inputs.version }}
         run: |
@@ -60,6 +91,11 @@ jobs:
           echo "EXTENSION_VERSION=$EXTENSION_VERSION" >> $GITHUB_ENV
           echo "EXTENSION_REVISION=${{ inputs.revision }}" >> $GITHUB_ENV
           echo "LATEST_EXTENSION_VERSION=${{ inputs.version }}-${{ inputs.revision }}" >> $GITHUB_ENV
+
+      - name: Export effective release values
+        id: effective-release-values
+        run: |
+          echo "REVISION=$EXTENSION_REVISION" >> $GITHUB_OUTPUT
       
       - name: Re-checkout meshery-extensions at release tag
         if: ${{ inputs.version }}
