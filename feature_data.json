@@ -594,6 +594,21 @@
       "Category": "Designs",
       "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
       "Enterprise Comparison Tier": "",
+      "Feature": "Evaluate relationships inside a design",
+      "Free Comparison Tier": "",
+      "Function": "Evaluate Relationships",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
+      "Enterprise Comparison Tier": "",
       "Feature": "Download a Meshery design in OCI or YAML format",
       "Free Comparison Tier": "",
       "Function": "Download a design",
