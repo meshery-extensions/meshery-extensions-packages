@@ -96,9 +96,45 @@ jobs:
         id: effective-release-values
         run: |
           echo "REVISION=$EXTENSION_REVISION" >> $GITHUB_OUTPUT
-      
-      - name: Re-checkout meshery-extensions at release tag
+
+      # The Kanvas package is the binding between three repos:
+      #   meshery/meshery@<MESHERY_VERSION>           (core platform - upstream, must already be tagged)
+      #   layer5labs/meshery-extensions@<LATEST_EXTENSION_VERSION>  (extension source - tagged by this workflow if needed)
+      #   meshery-extensions-packages release <LATEST_EXTENSION_VERSION> (this repo - tagged at publish time)
+      # All three must agree on the same version label so a downloaded provider-meshery.tar.gz
+      # is traceable to the exact source commits that produced it.
+      - name: Validate release refs and resolve extension checkout strategy
         if: ${{ inputs.version }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          EXTENSION_RELEASE_REF: ${{ env.LATEST_EXTENSION_VERSION }}
+          MESHERY_RELEASE_REF: ${{ env.MESHERY_VERSION }}
+        run: |
+          set -euo pipefail
+
+          # Core platform release MUST already exist - meshery/meshery is upstream of the
+          # extension package. If it is missing, cut the core release first.
+          if ! gh api "repos/meshery/meshery/git/refs/tags/${MESHERY_RELEASE_REF}" >/dev/null 2>&1; then
+            msg="Core platform tag '${MESHERY_RELEASE_REF}' does not exist in meshery/meshery. Cut the core release first, then re-run this workflow."
+            echo "reason=$msg" >> "$GITHUB_ENV"
+            echo "::error::$msg"
+            exit 1
+          fi
+
+          # Extension source tag - optional pre-existing tag:
+          #   exists -> re-checkout at it (deterministic, hotfix-safe).
+          #   missing -> build from the initial checkout; the publish step will create the
+          #              tag at that exact build commit (anchored via release-action's 'commit:').
+          if gh api "repos/layer5labs/meshery-extensions/git/refs/tags/${EXTENSION_RELEASE_REF}" >/dev/null 2>&1; then
+            echo "Extension tag '${EXTENSION_RELEASE_REF}' exists in layer5labs/meshery-extensions - re-checkout will use it."
+            echo "EXTENSION_TAG_EXISTS=true" >> "$GITHUB_ENV"
+          else
+            echo "::notice::Extension tag '${EXTENSION_RELEASE_REF}' does not exist yet in layer5labs/meshery-extensions. Building from the initial checkout; the publish step will create the tag at the build commit."
+            echo "EXTENSION_TAG_EXISTS=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Re-checkout meshery-extensions at release tag
+        if: ${{ inputs.version && env.EXTENSION_TAG_EXISTS == 'true' }}
         uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -106,6 +142,14 @@ jobs:
           path: "meshery-extensions"
           fetch-depth: 1
           ref: ${{ env.LATEST_EXTENSION_VERSION }}
+
+      - name: Capture extension build commit
+        working-directory: "meshery-extensions"
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          echo "EXTENSION_BUILD_SHA=$sha" >> "$GITHUB_ENV"
+          echo "Extension build commit: $sha"
 
       - name: Checkout meshery/meshery
         uses: actions/checkout@v6
@@ -201,6 +245,10 @@ jobs:
           repo: meshery-extensions
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           tag: ${{ env.LATEST_EXTENSION_VERSION }}
+          # Anchor the tag to the exact commit we built from. If the tag was created
+          # ahead of this workflow this is a no-op; if this workflow is creating the
+          # tag, this prevents drift if meshery-extensions master moves during the run.
+          commit: ${{ env.EXTENSION_BUILD_SHA }}
           name: Meshery Extensions ${{ env.LATEST_EXTENSION_VERSION }}
           allowUpdates: true
           artifactErrorsFailBuild: true
