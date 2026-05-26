@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-and-release:
-    name: Build and Rollout Kanvas
+    name: Build and Rollout Extensions
     outputs:
       meshery_version: ${{ steps.set-vars.outputs.MESHERY_VERSION }}
       meshery_extension_version: ${{ steps.set-vars.outputs.MESHERY_EXTENSION_VERSION }}
