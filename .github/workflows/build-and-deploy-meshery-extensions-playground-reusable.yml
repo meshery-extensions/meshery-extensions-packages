@@ -1,4 +1,4 @@
-name: Build and Rollout Kanvas Reusable
+name: Build and Rollout Extensions Reusable
 on:
   workflow_call:
     inputs:
