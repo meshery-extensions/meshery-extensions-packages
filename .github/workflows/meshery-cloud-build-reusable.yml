@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Set pending commit status
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
           script: |
@@ -254,7 +254,7 @@ jobs:
     needs: [build-meshery-cloud]
     steps:
       - name: Set final commit status
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
           script: |
