@@ -15,7 +15,7 @@ on:
 
 jobs:
   release-kanvas:
-    name: Build and Release Kanvas
+    name: Build and Release Extensions
     runs-on: "ubuntu-24.04"
     env:
       MESHERY_EXTENSIONS_PATH: ${{ github.workspace }}/meshery-extensions
@@ -289,7 +289,7 @@ jobs:
 
   rollout-kanvas:
     needs: release-kanvas
-    name: Build and Rollout Kanvas
+    name: Build and Rollout Extensions
     # Rebuilding and packaging the extensions in the Meshery Kanvas build, and rolling them out, will have no effect if the extensions are released independently. This is because the Meshery version will remain the same and will not be redeployed. We will need to access "kanvas.new" to ensure the package gets downloaded. Therefore, we should skip the rollout unless this process or flow changes.
     if: ${{ fromJSON(needs.release-kanvas.outputs.revision) < 2 }}
     secrets: inherit
