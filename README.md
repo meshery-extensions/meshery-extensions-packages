@@ -78,7 +78,7 @@ Access Meshery Cloud at https://cloud.meshery.io
 
 **Relevant Directories**
 - `/email`: Contains html emails templates, svgs/png to be used for emails sent for `meshery-cloud` and other newsletter html templates.
-- See the aftifacts under each [Release](https://github.com/meshery-extensions/meshery-extensions-packages/releases).
+- See the artifacts under each [Release](https://github.com/meshery-extensions/meshery-extensions-packages/releases).
 
 ### Function 3: Images taken by Kanvas Snapshots
 Find out more at https://meshery.io/extensions/github-action-meshery-snapshot
