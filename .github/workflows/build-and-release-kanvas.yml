@@ -242,6 +242,11 @@ jobs:
       - name: publish stable release on meshery-extensions from tag
         uses: ncipollo/release-action@v1
         with:
+          # Extension source lives at layer5labs/meshery-extensions (see workflow header
+          # comment). 'owner' defaults to the current repo's owner (meshery-extensions),
+          # so it MUST be set explicitly here or the action targets
+          # meshery-extensions/meshery-extensions and 404s on list releases.
+          owner: layer5labs
           repo: meshery-extensions
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           tag: ${{ env.LATEST_EXTENSION_VERSION }}
