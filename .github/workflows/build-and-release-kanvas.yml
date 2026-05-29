@@ -9,7 +9,7 @@ on:
         description: "Revision of Extension (e.g. 1)"
         required: false
       branch:
-        description: Branch of `meshery-extensions` repository to use for the initial checkout. Use `version` and `revision` for release tags.
+        description: Branch of `meshery-extensions` repository to deploy.
         required: false
         default: master
 
@@ -21,39 +21,8 @@ jobs:
       MESHERY_EXTENSIONS_PATH: ${{ github.workspace }}/meshery-extensions
       EXTENSION_BUILD_ROOT: /home/runner/.meshery/provider/Layer5
     outputs:
-      revision: ${{ steps.effective-release-values.outputs.REVISION }}
+      revision: ${{ steps.fetch-versions.outputs.REVISION }}
     steps:
-      - name: Resolve meshery-extensions checkout ref
-        env:
-          INPUT_BRANCH: ${{ inputs.branch }}
-          INPUT_VERSION: ${{ inputs.version }}
-          INPUT_REVISION: ${{ inputs.revision }}
-        run: |
-          set -euo pipefail
-
-          if [[ -n "$INPUT_VERSION" && -z "$INPUT_REVISION" ]]; then
-            echo "Input 'revision' is required when 'version' is provided." >&2
-            exit 1
-          fi
-
-          if [[ -n "$INPUT_REVISION" && -z "$INPUT_VERSION" ]]; then
-            echo "Input 'version' is required when 'revision' is provided." >&2
-            exit 1
-          fi
-
-          checkout_ref="${INPUT_BRANCH:-master}"
-          if [[ "$checkout_ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$ ]]; then
-            if [[ -n "$INPUT_VERSION" ]]; then
-              echo "::warning::Input 'branch' looks like a release tag (${checkout_ref}); using master for the initial checkout and ${INPUT_VERSION}-${INPUT_REVISION} for the release checkout."
-              checkout_ref="master"
-            else
-              echo "Input 'branch' looks like a release tag (${checkout_ref}). Use 'version' and 'revision' for release tags, or provide a real branch name." >&2
-              exit 1
-            fi
-          fi
-
-          echo "INITIAL_EXTENSION_REF=$checkout_ref" >> "$GITHUB_ENV"
-
       - name: Checkout meshery-extensions
         uses: actions/checkout@v6
         with:
@@ -61,7 +30,7 @@ jobs:
           repository: layer5labs/meshery-extensions
           path: "meshery-extensions"
           fetch-depth: 1
-          ref: ${{ env.INITIAL_EXTENSION_REF }}
+          ref: ${{ inputs.branch }}
 
       - name: Get latest version for meshery and meshery-extensions
         id: fetch-versions
@@ -91,50 +60,9 @@ jobs:
           echo "EXTENSION_VERSION=$EXTENSION_VERSION" >> $GITHUB_ENV
           echo "EXTENSION_REVISION=${{ inputs.revision }}" >> $GITHUB_ENV
           echo "LATEST_EXTENSION_VERSION=${{ inputs.version }}-${{ inputs.revision }}" >> $GITHUB_ENV
-
-      - name: Export effective release values
-        id: effective-release-values
-        run: |
-          echo "REVISION=$EXTENSION_REVISION" >> $GITHUB_OUTPUT
-
-      # The Kanvas package is the binding between three repos:
-      #   meshery/meshery@<MESHERY_VERSION>           (core platform - upstream, must already be tagged)
-      #   layer5labs/meshery-extensions@<LATEST_EXTENSION_VERSION>  (extension source - tagged by this workflow if needed)
-      #   meshery-extensions-packages release <LATEST_EXTENSION_VERSION> (this repo - tagged at publish time)
-      # All three must agree on the same version label so a downloaded provider-meshery.tar.gz
-      # is traceable to the exact source commits that produced it.
-      - name: Validate release refs and resolve extension checkout strategy
-        if: ${{ inputs.version }}
-        env:
-          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
-          EXTENSION_RELEASE_REF: ${{ env.LATEST_EXTENSION_VERSION }}
-          MESHERY_RELEASE_REF: ${{ env.MESHERY_VERSION }}
-        run: |
-          set -euo pipefail
-
-          # Core platform release MUST already exist - meshery/meshery is upstream of the
-          # extension package. If it is missing, cut the core release first.
-          if ! gh api "repos/meshery/meshery/git/refs/tags/${MESHERY_RELEASE_REF}" >/dev/null 2>&1; then
-            msg="Core platform tag '${MESHERY_RELEASE_REF}' does not exist in meshery/meshery. Cut the core release first, then re-run this workflow."
-            echo "reason=$msg" >> "$GITHUB_ENV"
-            echo "::error::$msg"
-            exit 1
-          fi
-
-          # Extension source tag - optional pre-existing tag:
-          #   exists -> re-checkout at it (deterministic, hotfix-safe).
-          #   missing -> build from the initial checkout; the publish step will create the
-          #              tag at that exact build commit (anchored via release-action's 'commit:').
-          if gh api "repos/layer5labs/meshery-extensions/git/refs/tags/${EXTENSION_RELEASE_REF}" >/dev/null 2>&1; then
-            echo "Extension tag '${EXTENSION_RELEASE_REF}' exists in layer5labs/meshery-extensions - re-checkout will use it."
-            echo "EXTENSION_TAG_EXISTS=true" >> "$GITHUB_ENV"
-          else
-            echo "::notice::Extension tag '${EXTENSION_RELEASE_REF}' does not exist yet in layer5labs/meshery-extensions. Building from the initial checkout; the publish step will create the tag at the build commit."
-            echo "EXTENSION_TAG_EXISTS=false" >> "$GITHUB_ENV"
-          fi
-
+      
       - name: Re-checkout meshery-extensions at release tag
-        if: ${{ inputs.version && env.EXTENSION_TAG_EXISTS == 'true' }}
+        if: ${{ inputs.version }}
         uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
@@ -142,14 +70,6 @@ jobs:
           path: "meshery-extensions"
           fetch-depth: 1
           ref: ${{ env.LATEST_EXTENSION_VERSION }}
-
-      - name: Capture extension build commit
-        working-directory: "meshery-extensions"
-        run: |
-          set -euo pipefail
-          sha=$(git rev-parse HEAD)
-          echo "EXTENSION_BUILD_SHA=$sha" >> "$GITHUB_ENV"
-          echo "Extension build commit: $sha"
 
       - name: Checkout meshery/meshery
         uses: actions/checkout@v6
@@ -250,10 +170,6 @@ jobs:
           repo: meshery-extensions
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           tag: ${{ env.LATEST_EXTENSION_VERSION }}
-          # Anchor the tag to the exact commit we built from. If the tag was created
-          # ahead of this workflow this is a no-op; if this workflow is creating the
-          # tag, this prevents drift if meshery-extensions master moves during the run.
-          commit: ${{ env.EXTENSION_BUILD_SHA }}
           name: Meshery Extensions ${{ env.LATEST_EXTENSION_VERSION }}
           allowUpdates: true
           artifactErrorsFailBuild: true
