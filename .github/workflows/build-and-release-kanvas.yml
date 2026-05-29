@@ -51,7 +51,7 @@ jobs:
           echo "EXTENSION_VERSION=$EXTENSION_VERSION"
           echo "EXTENSION_REVISION=$EXTENSION_REVISION"
           echo "LATEST_EXTENSION_VERSION=$MESHERY_VERSION-$EXTENSION_REVISION"
-          echo "REVISION=$REVISION"
+          echo "REVISION=$EXTENSION_REVISION"
       - name: Override version and revision, if provided
         if: ${{ inputs.version }}
         run: |
