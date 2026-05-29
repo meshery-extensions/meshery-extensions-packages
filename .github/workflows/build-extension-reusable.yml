@@ -14,8 +14,6 @@ on:
         required: false
         type: string
     secrets:
-      NODE_VERSION:
-        required: true
       GH_ACCESS_TOKEN:
         required: true
 
@@ -48,7 +46,7 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ secrets.NODE_VERSION }}
+          node-version: ${{ vars.NODE_VERSION || '22.x' }}
           cache: "npm"
           cache-dependency-path: 'meshery-extensions/ui/package-lock.json'
 
