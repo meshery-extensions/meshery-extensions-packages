@@ -157,7 +157,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: ${{ vars.NODE_VERSION || '22.x' }}
 
       # Moved up: checkout has no dependency on Kind/Docker and can
       # run while those slower steps proceed.
