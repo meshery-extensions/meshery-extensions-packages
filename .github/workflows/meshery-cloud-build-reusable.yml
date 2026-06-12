@@ -40,31 +40,31 @@ on:
         required: true
         
 jobs:
-  set-pending-status:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Set pending commit status
-        uses: actions/github-script@v9
-        with:
-          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
-          script: |
-            try {
-              await github.rest.repos.createCommitStatus({
-                owner: 'layer5io',
-                repo: 'meshery-cloud',
-                sha: '${{ inputs.pr_commit_sha }}',
-                state: 'pending',
-                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-                description: 'Cloud build and tests in progress...',
-                context: 'Meshery Cloud Build'
-              });
-            } catch (error) {
-              if (error.status === 401 || error.status === 403) {
-                core.warning(`Skipping pending commit status update for layer5io/meshery-cloud: ${error.message}`);
-                return;
-              }
-              throw error;
-            }
+  # set-pending-status:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - name: Set pending commit status
+  #       uses: actions/github-script@v9
+  #       with:
+  #         github-token: ${{ secrets.GH_ACCESS_TOKEN }}
+  #         script: |
+  #           try {
+  #             await github.rest.repos.createCommitStatus({
+  #               owner: 'layer5io',
+  #               repo: 'meshery-cloud',
+  #               sha: '${{ inputs.pr_commit_sha }}',
+  #               state: 'pending',
+  #               target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+  #               description: 'Cloud build and tests in progress...',
+  #               context: 'Meshery Cloud Build'
+  #             });
+  #           } catch (error) {
+  #             if (error.status === 401 || error.status === 403) {
+  #               core.warning(`Skipping pending commit status update for layer5io/meshery-cloud: ${error.message}`);
+  #               return;
+  #             }
+  #             throw error;
+  #           }
   build-meshery-cloud:
     name: Server Build
     runs-on: ubuntu-24.04
