@@ -24,7 +24,7 @@ assignees: ''
 
 #### Contributor Guide and Resources
 - 📚 [Contributor Guide](https://github.com/meshery-extensions/meshery-extensions-packages/blob/master/README.md)
-- 🙋🏾🙋🏼 Questions: [Layer5 Discussion Forum](https://discuss.meshery.io) and [Layer5 Community Slack](http://slack.layer5.io)
+- 🙋🏾🙋🏼 Questions: [Layer5 Discussion Forum](https://discuss.meshery.io) and [Layer5 Community Slack](https://slack.meshery.io)
 
 > [!WARNING]
 >  Before cloning this repo to your local machine, ensure that you do so sparsely or your clone will take a long time to download / sync.
