@@ -187,6 +187,7 @@ jobs:
           build-args: |
             ENVIRONMENT="staging"
             GIT_VERSION=staging-${{env.PR_NUMBER}}
+            GIT_COMMITSHA=${{ inputs.pr_commit_sha }}
             RELEASE_CHANNEL=staging
             TOKEN=${{ secrets.GLOBAL_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
