@@ -1,10 +1,31 @@
 # Meshery Design Embed Package
 
 Meshery Design Embedding allows you to export a design in a format that can be integrated into websites, blogs, or platforms supporting HTML, CSS, and JavaScript. This embedded version offers an interactive representation of the design, simplifying sharing with infrastructure stakeholders.
+
+## Local Development 
+
+Follow the steps below to setup the local development server and run it locally.
+
+### Install dependencies:
+
+This would install all the packages required.
+
+``` 
+npm i
+```
+### Start the development server:
+
+```
+npm run dev
+```
+
+Open your browser and navigate to http://localhost:5173 
+
+A test design will be automatically rendered, allowing you to see your changes in real-time and test different configurations. The development server supports hot reload, so changes will update automatically.
   
 ## meshery-design-embed react component
 
-This component is meant to facilate the usage of meshery embeddings inside react and its frameworks
+This component is meant to facilitate the usage of meshery embeddings inside react and its frameworks
 
 Usage :
 ```
@@ -29,8 +50,8 @@ function Design() {
 
 Props:
  - embedScriptSrc: "Relative path to the exported design"
- - embedId: "Emebedded design id"
- - style: "Custom styles to the embeded design E.g. backgroundColor, textColor, etc"
+ - designLink: "Full URL to the embedded design (if provided, shows 'Open in Meshery' button)"
+ - style: "Custom styles to the embedded design E.g. backgroundColor, textColor, etc"
 
 ### Limitations
 
@@ -45,3 +66,7 @@ Certain aspects of Meshery Designs and their visualization are not currently sup
 1. Function: Viewing comments 
 
 Learn more about [embedding Meshery Designs](https://docs.layer5.io/meshmap/designer/embedding-designs/).
+
+## Publishing New Versions
+
+Dispatch https://github.com/layer5labs/meshery-extensions-packages/actions/workflows/publish-meshery-design-embed-package.yml

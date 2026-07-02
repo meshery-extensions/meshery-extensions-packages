@@ -1,13 +1,13 @@
 package main
 
 import (
-    "encoding/csv"
-    "encoding/json"
-    "fmt"
-    "io"
-    "net/http"
-    "os"
-    "strings"
+	"encoding/csv"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strings"
 )
 
 type Subscription struct {
@@ -38,6 +38,16 @@ func main() {
     // Reset the response body for CSV reading
     resp.Body = io.NopCloser(strings.NewReader(string(body)))
 
+    if (resp.StatusCode == 404) {
+        fmt.Println("google spreadsheets not found, please update the URL")
+        os.Exit(1)
+    }
+
+    if (resp.StatusCode != 200) {
+        fmt.Printf("google spreadsheets not responding with status ok, but got %v \n", resp.StatusCode)
+        os.Exit(1)
+    }
+
     // Create a CSV reader from the response body
     reader := csv.NewReader(resp.Body)
     reader.FieldsPerRecord = -1
@@ -55,9 +65,16 @@ func main() {
         panic(err)
     }
 
+    fmt.Println("Headers:", headers)
+
+
+
     var subscriptions []Subscription
     for {
         record, err := reader.Read()
+
+        fmt.Println("Record:", record)
+        
         if err != nil {
             break
         }
@@ -73,7 +90,7 @@ func main() {
 
 			// Only include specified headers in the EntireRow map
 			switch lowercaseHeader {
-			case "category", "theme (also: keychain name)", "function", "feature", "subscription tier", "tech", "pricing page?", "documented?":
+			case "category", "theme (also: keychain name)", "function", "feature", "subscription tier", "tech", "pricing page?", "documented?", "free comparison tier","teamDesigner comparison tier","teamOperator comparison tier","enterprise comparison tier":
 				sub.EntireRow[trimmedHeader] = strings.TrimSpace(record[i])
 			}
 
@@ -81,7 +98,7 @@ func main() {
 			switch lowercaseHeader {
 			case "pricing page?":
 				value := strings.ToLower(strings.TrimSpace(record[i]))
-				if value == "x" || value == "true" {
+				if value == "x" || value == "true" || value == "X"{
 					sub.PricingPage = "true"
 					includeSub = true
 				}

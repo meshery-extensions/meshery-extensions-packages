@@ -16,11 +16,15 @@ permissions:
 
 jobs:
   comment:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout repo 🛎️
-        uses: actions/checkout@master
+      - name: Checkout 🛎️
+        uses: actions/checkout@v6
         with:
+          sparse-checkout: |
+            install
+            site
+            assets
           ref: master # Set your default branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

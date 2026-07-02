@@ -4,10 +4,87 @@
     "entire_row": {
       "Category": "Profile",
       "Documented?": "https://docs.layer5.io/cloud/getting-started/getting-started-with-layer5-account/#7-viewing-your-layer5-profile",
+      "Enterprise Comparison Tier": "x",
       "Feature": "View your profile.",
+      "Free Comparison Tier": "x",
       "Function": "View Profile",
       "Pricing page?": "",
       "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Account Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/",
+    "entire_row": {
+      "Category": "Profile",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Update details of your user account.",
+      "Free Comparison Tier": "x",
+      "Function": "Edit Account",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Account Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/",
+    "entire_row": {
+      "Category": "Profile",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Perform a password reset for your user account.",
+      "Free Comparison Tier": "x",
+      "Function": "Reset Pasword",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Account Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/",
+    "entire_row": {
+      "Category": "Profile",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Delete your user account.",
+      "Free Comparison Tier": "x",
+      "Function": "Delete Account",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Account Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/",
+    "entire_row": {
+      "Category": "Profile",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Link your social sign-in with GitHub to your existing user account.",
+      "Free Comparison Tier": "",
+      "Function": "Connect your Github Account",
+      "Pricing page?": "",
+      "Subscription Tier": "Team",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Account Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/",
+    "entire_row": {
+      "Category": "Profile",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Link your social sign-in with Google to your existing user account.",
+      "Free Comparison Tier": "",
+      "Function": "Connect your Google Account",
+      "Pricing page?": "",
+      "Subscription Tier": "Team",
       "Tech": "Cloud",
       "Theme (also: Keychain Name)": "Account Management"
     }
@@ -17,8 +94,10 @@
     "entire_row": {
       "Category": "Catalog",
       "Documented?": "https://docs.layer5.io/cloud/catalog/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Export a copy of a design to your local system.",
-      "Function": "",
+      "Free Comparison Tier": "x",
+      "Function": "Deploy Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
       "Tech": "Server",
@@ -26,23 +105,13 @@
     }
   },
   {
-    "documentation": "https://docs.layer5.io/cloud/catalog/",
-    "entire_row": {
-      "Category": "Catalog",
-      "Documented?": "https://docs.layer5.io/cloud/catalog/",
-      "Feature": "Export a copy of a design to your local system.",
-      "Function": "",
-      "Pricing page?": "",
-      "Subscription Tier": "Free",
-      "Tech": "Server"
-    }
-  },
-  {
     "documentation": "https://docs.layer5.io/kanvas/designer/share-resource/",
     "entire_row": {
       "Category": "Catalog",
       "Documented?": "https://docs.layer5.io/kanvas/designer/share-resource/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Share design with anyone within your organization, and make your design easily accessible to all relevant team members.",
+      "Free Comparison Tier": "x",
       "Function": "Share Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -55,7 +124,9 @@
     "entire_row": {
       "Category": "Catalog",
       "Documented?": "https://docs.layer5.io/kanvas/tasks/designs/cloning-a-design/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Clone any published design to customise it according to your use cases",
+      "Free Comparison Tier": "x",
       "Function": "Clone Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -64,11 +135,118 @@
     }
   },
   {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "View all public and published designs of other team members and private of signed-in user",
+      "Free Comparison Tier": "",
+      "Function": "View Designs",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+    "entire_row": {
+      "Category": "Catalog Requests",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "View the catalog publication request queue",
+      "Free Comparison Tier": "",
+      "Function": "View Catalog Requests",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+    "entire_row": {
+      "Category": "Catalog Requests",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Approve catalog publication requests",
+      "Free Comparison Tier": "",
+      "Function": "Approve Catalog Request",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+    "entire_row": {
+      "Category": "Catalog Requests",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Deny catalog publication requests",
+      "Free Comparison Tier": "",
+      "Function": "Deny Catalog Request",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "View private designs of the org",
+      "Free Comparison Tier": "",
+      "Function": "View Private Designs",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "View public designs of the org",
+      "Free Comparison Tier": "",
+      "Function": "View Public Designs",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "View published designs of the org",
+      "Free Comparison Tier": "",
+      "Function": "View Published Designs",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
     "documentation": "https://docs.meshery.io/guides/configuration-management/creating-a-meshery-design",
     "entire_row": {
       "Category": "Designs",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/creating-a-meshery-design",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Create new Meshery design",
+      "Free Comparison Tier": "",
       "Function": "Create new design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -77,11 +255,13 @@
     }
   },
   {
-    "documentation": "https://docs.meshery.io/extensions/importing-a-design",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "https://docs.meshery.io/extensions/importing-a-design",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Import a design",
+      "Free Comparison Tier": "",
       "Function": "Import Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -90,11 +270,13 @@
     }
   },
   {
-    "documentation": "https://docs.meshery.io/guides/configuration-management/importing-designs#import-designs-using-meshery-cli",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "https://docs.meshery.io/guides/configuration-management/importing-designs#import-designs-using-meshery-cli",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Import a design from Kubernetes Manifest",
+      "Free Comparison Tier": "",
       "Function": "Import Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -103,11 +285,13 @@
     }
   },
   {
-    "documentation": "https://docs.layer5.io/kanvas/getting-started/starting-helm/#importing-a-design",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "https://docs.layer5.io/kanvas/getting-started/starting-helm/#importing-a-design",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Import a design from Meshery Design (YAML)",
+      "Free Comparison Tier": "",
       "Function": "Import Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -116,11 +300,13 @@
     }
   },
   {
-    "documentation": "https://docs.meshery.io/guides/configuration-management/importing-designs#import-designs-using-meshery-cli",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "https://docs.meshery.io/guides/configuration-management/importing-designs#import-designs-using-meshery-cli",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Import a design from Helm Chart",
+      "Free Comparison Tier": "",
       "Function": "Import Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -129,11 +315,28 @@
     }
   },
   {
-    "documentation": "https://docs.meshery.io/guides/configuration-management/importing-designs#import-designs-using-meshery-cli",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "https://docs.meshery.io/guides/configuration-management/importing-designs#import-designs-using-meshery-cli",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Import a design from Docker Compose",
+      "Free Comparison Tier": "",
+      "Function": "Import Design",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Import a design from Meshery Design (OCI Image)",
+      "Free Comparison Tier": "",
       "Function": "Import Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -143,11 +346,14 @@
   },
   {
     "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "",
-      "Feature": "Import a design from Kubernetes Manifest, Meshery Design (YAML), Helm Chart, Docker Compose or Meshery Design (OCI Image)",
-      "Function": "Standard Import Design",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Import a design from Kubernetes Manifest, Helm Chart, or Docker Compose",
+      "Free Comparison Tier": "",
+      "Function": "Import Design",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
       "Tech": "Server",
@@ -155,11 +361,13 @@
     }
   },
   {
-    "documentation": "https://docs.layer5.io/cloud/getting-started/github-integration/#connect-github-and-import-designs",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "https://docs.layer5.io/cloud/getting-started/github-integration/#connect-github-and-import-designs",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Import a design from GitHub",
+      "Free Comparison Tier": "",
       "Function": "Import Design",
       "Pricing page?": "",
       "Subscription Tier": "Enterprise",
@@ -168,26 +376,47 @@
     }
   },
   {
-    "documentation": "https://docs.layer5.io/cloud/getting-started/github-integration/#connect-github-and-import-designs",
+    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "https://docs.layer5.io/cloud/getting-started/github-integration/#connect-github-and-import-designs",
-      "Feature": "Import a design from GitHub",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Import a design from your local filesystem",
+      "Free Comparison Tier": "",
       "Function": "Import Design",
-      "Pricing page?": "",
+      "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
-      "Tech": "Cloud"
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
     }
   },
   {
-    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/designer/embedding-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "",
-      "Feature": "Import a design from GitHub, GitLab, BitBucket",
-      "Function": "Premium Design Import Features",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/embedding-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Embed a design in a webpage",
+      "Free Comparison Tier": "x",
+      "Function": "Export Design",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.meshery.io/extensions/import-export-designs#export-methods",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.meshery.io/extensions/import-export-designs#export-methods",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Export a design in source type format (Kubernetes Manifest, Helm Chart, Docker Compose)",
+      "Free Comparison Tier": "",
+      "Function": "Export Design",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Catalog Management"
     }
@@ -197,7 +426,9 @@
     "entire_row": {
       "Category": "Designs",
       "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-a-design-file",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Export a latest version of design in Meshery Design (YAML format)",
+      "Free Comparison Tier": "x",
       "Function": "Export Design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -210,34 +441,42 @@
     "entire_row": {
       "Category": "Designs",
       "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Export a latest version of design in Meshery Design (OCI format)",
+      "Free Comparison Tier": "",
       "Function": "Export Design",
       "Pricing page?": "",
-      "Subscription Tier": "Free",
+      "Subscription Tier": "TeamDesigner",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Catalog Management"
     }
   },
   {
     "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/designer/export-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Export a latest version of design in Meshery Design (OCI format, YAML format) Export a design in source type format (Kubernetes Manifest, Helm Chart, Docker Compose)",
-      "Function": "Standard Export Design",
+      "Free Comparison Tier": "",
+      "Function": "Standard Design Export",
       "Pricing page?": "X",
-      "Subscription Tier": "Free",
+      "Subscription Tier": "TeamDesigner",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Catalog Management"
     }
   },
   {
     "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/designer/export-designs#exporting-as-a-png-image",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "",
-      "Feature": "Export a design to GitHub, GitLab, BitBucket",
-      "Function": "Premium Export Design Features",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs#exporting-as-a-png-image",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Take snapshot of design",
+      "Free Comparison Tier": "",
+      "Function": "Export Design",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
       "Tech": "Server",
@@ -245,39 +484,31 @@
     }
   },
   {
-    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "",
-      "Feature": "Import and export your designs using your local filesystem or remote URL.",
-      "Function": "Cloud Native Design Patterns",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Publish a design",
+      "Free Comparison Tier": "",
+      "Function": "Publish Design",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Server",
       "Theme (also: Keychain Name)": "Catalog Management"
     }
   },
   {
-    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
     "entire_row": {
       "Category": "Designs",
-      "Documented?": "",
-      "Feature": "Import and export your designs using your local filesystem or remote URL.",
-      "Function": "Cloud Native Design Patterns",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": ""
-    }
-  },
-  {
-    "documentation": "https://docs.meshery.io/extensions/publishing-a-design",
-    "entire_row": {
-      "Category": "Designs",
-      "Documented?": "https://docs.meshery.io/extensions/publishing-a-design",
-      "Feature": "Publish a design",
-      "Function": "Publish Design",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Unpublish a design",
+      "Free Comparison Tier": "",
+      "Function": "Unpublish Design",
       "Pricing page?": "",
-      "Subscription Tier": "Free",
+      "Subscription Tier": "TeamDesigner",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Catalog Management"
     }
@@ -287,10 +518,12 @@
     "entire_row": {
       "Category": "Designs",
       "Documented?": "https://docs.layer5.io/kanvas/tasks/designs/validating-designs/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Validate a design",
+      "Free Comparison Tier": "",
       "Function": "Validate Design",
       "Pricing page?": "",
-      "Subscription Tier": "Free",
+      "Subscription Tier": "TeamDesigner",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Catalog Management"
     }
@@ -300,10 +533,12 @@
     "entire_row": {
       "Category": "Designs",
       "Documented?": "https://docs.layer5.io/kanvas/tasks/designs/deploying-designs/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Deploy a design",
+      "Free Comparison Tier": "",
       "Function": "Deploy Design",
       "Pricing page?": "",
-      "Subscription Tier": "Free",
+      "Subscription Tier": "TeamOperator",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Catalog Management"
     }
@@ -313,8 +548,70 @@
     "entire_row": {
       "Category": "Designs",
       "Documented?": "https://docs.layer5.io/kanvas/tasks/designs/undeploying-designs/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Retract all resources used in a Meshery design from the cluster",
+      "Free Comparison Tier": "",
       "Function": "Undeploy Design",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Set design information or details of a design",
+      "Free Comparison Tier": "",
+      "Function": "Details of design",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Edit a design",
+      "Free Comparison Tier": "",
+      "Function": "Edit design",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Evaluate relationships inside a design",
+      "Free Comparison Tier": "",
+      "Function": "Evaluate Relationships",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
+    "entire_row": {
+      "Category": "Designs",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/export-designs/#exporting-as-an-oci-image",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Download a Meshery design in OCI or YAML format",
+      "Free Comparison Tier": "",
+      "Function": "Download a design",
       "Pricing page?": "",
       "Subscription Tier": "Free",
       "Tech": "Server",
@@ -326,7 +623,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Import a filter",
+      "Free Comparison Tier": "",
       "Function": "Import Filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -339,7 +638,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Publish WASM Filter",
+      "Free Comparison Tier": "",
       "Function": "Publish WASM Filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -352,7 +653,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Unpublish WASM Filter",
+      "Free Comparison Tier": "",
       "Function": "Unpublish WASM Filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -365,7 +668,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Download a WASM filter",
+      "Free Comparison Tier": "",
       "Function": "Download a WASM filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -378,7 +683,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Check information or details of a WASM filter",
+      "Free Comparison Tier": "",
       "Function": "Details of WASM Filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -391,7 +698,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Edit WASM filter",
+      "Free Comparison Tier": "",
       "Function": "Edit WASM filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -404,7 +713,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Clone WASM filter from catalog, which allows customizing filter and use it in design",
+      "Free Comparison Tier": "",
       "Function": "Clone WASM Filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -417,7 +728,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "https://docs.meshery.io/guides/configuration-management/filter-management",
+      "Enterprise Comparison Tier": "",
       "Feature": "Delete WASM filter permanently from catalog.",
+      "Free Comparison Tier": "",
       "Function": "Delete WASM Filter",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -430,7 +743,9 @@
     "entire_row": {
       "Category": "Filters",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Import, Unpublish, Publish, Download, Edit, Clone, Delete, Details of WASM Filter",
+      "Free Comparison Tier": "",
       "Function": "WASM Filter and filter",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -439,11 +754,43 @@
     }
   },
   {
+    "documentation": "https://docs.layer5.io/kanvas/designer/share-resource/",
+    "entire_row": {
+      "Category": "Collaborators for public designs",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/share-resource/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Invite any Meshery Cloud user, or all Meshery users, to work with you on a public design that control – including making changes and releasing new versions.",
+      "Free Comparison Tier": "",
+      "Function": "Invite any Meshery Cloud user, or all Meshery users",
+      "Pricing page?": "",
+      "Subscription Tier": "Team",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Collaboration"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/share-resource/",
+    "entire_row": {
+      "Category": "Collaborators for private designs",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/share-resource/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Invite any Meshery Cloud user to work with you on a private design that control – including making changes and releasing new versions.",
+      "Free Comparison Tier": "",
+      "Function": "Invite any Meshery Cloud user to on a private design",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Collaboration"
+    }
+  },
+  {
     "pricing_page": "true",
     "entire_row": {
       "Category": "Team Chat",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Message in real-time, unattached to a specific design. Control who can pariticpate in the discussion.",
+      "Free Comparison Tier": "",
       "Function": "Message in real-time",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
@@ -457,7 +804,9 @@
     "entire_row": {
       "Category": "Design Reviews",
       "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Discuss any design by leaving review comments or notes on a specific design. Control who has access, notify discussion participants with updates, and link from anywhere.",
+      "Free Comparison Tier": "",
       "Function": "Discuss any design by leaving review comments",
       "Pricing page?": "X",
       "Subscription Tier": "Team",
@@ -469,11 +818,13 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Organization and Team Management",
-      "Documented?": "",
+      "Documented?": "https://cloud.layer5.io/academy/learning-paths/mastering-meshery/introduction-to-meshery?chapter=using-workspaces-effectively",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Manage access to designs on a team-by-team, or individual user, basis.",
+      "Free Comparison Tier": "",
       "Function": "Manage access to designs",
       "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
+      "Subscription Tier": "TeamDesigner",
       "Tech": "Kanvas",
       "Theme (also: Keychain Name)": "Collaboration"
     }
@@ -481,12 +832,75 @@
   {
     "pricing_page": "true",
     "entire_row": {
+      "Category": "",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Create and collaborate in online operational topologies in real-time.",
+      "Free Comparison Tier": "",
+      "Function": "Manage access to views",
+      "Pricing page?": "X",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": ""
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/tutorials/gitops-snapshots/",
+    "entire_row": {
+      "Category": "Review",
+      "Documented?": "https://docs.layer5.io/cloud/tutorials/gitops-snapshots/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Visual insights in your pull requests in GitHub.com (App)",
+      "Free Comparison Tier": "",
+      "Function": "Snapshots",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "GitOps"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/",
+    "entire_row": {
+      "Category": "Multiple Users",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Multi-tenancy",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/notification-preferences/",
+    "entire_row": {
+      "Category": "Individual User Preferences",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/notification-preferences/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Allows preferences to be set per user.",
+      "Pricing page?": "",
+      "Subscription Tier": "Team",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/cloud/security/roles/",
+    "entire_row": {
       "Category": "Built-in Roles",
-      "Documented?": "",
+      "Documented?": "https://docs.layer5.io/cloud/security/roles/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Static - out of the box",
+      "Free Comparison Tier": "x",
       "Function": "Built-in Roles",
       "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
+      "Subscription Tier": "Free",
       "Tech": "Cloud",
       "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
     }
@@ -495,11 +909,58 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "User-defined Roles",
-      "Documented?": "",
+      "Documented?": "MISSING - https://docs.layer5.io/cloud/security/roles/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Customizable roles for specific permission assignments",
+      "Free Comparison Tier": "x",
       "Function": "User-defined Roles",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/",
+    "entire_row": {
+      "Category": "Multiple Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Enforcement of tenancy",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "OPA",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/roles/",
+    "entire_row": {
+      "Category": "Multiple Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/security/roles/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Hierarchical permissioning",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/",
+    "entire_row": {
+      "Category": "Authentication",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "x",
+      "Function": "Authentication: OAuth",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
       "Tech": "Cloud",
       "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
     }
@@ -509,7 +970,9 @@
     "entire_row": {
       "Category": "Authentication: LDAP",
       "Documented?": "",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Access Meshery Server using your existing accounts and centrally manage repository access.",
+      "Free Comparison Tier": "",
       "Function": "Authentication: LDAP",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
@@ -522,7 +985,9 @@
     "entire_row": {
       "Category": "Authentication: SAML",
       "Documented?": "",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Use an identity provider to manage the identities of GitHub users and applications.",
+      "Free Comparison Tier": "",
       "Function": "Authentication: SAML",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
@@ -531,11 +996,13 @@
     }
   },
   {
-    "documentation": "https://docs.layer5.io/cloud/identity/users/user-management/#add-user-remove-user",
+    "documentation": "https://docs.layer5.io/cloud/identity/users/\n",
     "entire_row": {
       "Category": "Users",
-      "Documented?": "https://docs.layer5.io/cloud/identity/users/user-management/#add-user-remove-user",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Delete a user account",
+      "Free Comparison Tier": "",
       "Function": "Delete User",
       "Pricing page?": "",
       "Subscription Tier": "Team",
@@ -548,96 +1015,14 @@
     "entire_row": {
       "Category": "Users",
       "Documented?": "https://docs.layer5.io/cloud/identity/users/user-management/#create-user",
+      "Enterprise Comparison Tier": "",
       "Feature": "Create a new user",
+      "Free Comparison Tier": "",
       "Function": "Create User",
       "Pricing page?": "",
       "Subscription Tier": "",
       "Tech": "",
       "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Organization and Team Management",
-      "Documented?": "",
-      "Feature": "Manage access to designs on a team-by-team, or individual user, basis.",
-      "Function": "Manage access to designs",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "Kanvas"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Built-in Roles",
-      "Documented?": "",
-      "Feature": "Static - out of the box",
-      "Function": "Built-in Roles",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "Cloud"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "User-defined Roles",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Customizable roles for specific permission assignments",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "Cloud"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Authentication: LDAP",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Access Meshery Server using your existing accounts and centrally manage repository access.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "Cloud"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Authentication: SAML",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Use an identity provider to manage the identities of GitHub users and applications.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "Cloud"
-    }
-  },
-  {
-    "documentation": "https://docs.layer5.io/cloud/identity/users/user-management/#add-user-remove-user",
-    "entire_row": {
-      "Category": "Users",
-      "Documented?": "https://docs.layer5.io/cloud/identity/users/user-management/#add-user-remove-user",
-      "Feature": "Delete a user account",
-      "Function": "Delete User",
-      "Pricing page?": "",
-      "Subscription Tier": "Team",
-      "Tech": ""
-    }
-  },
-  {
-    "documentation": "https://docs.layer5.io/cloud/identity/users/user-management/#create-user",
-    "entire_row": {
-      "Category": "Users",
-      "Documented?": "https://docs.layer5.io/cloud/identity/users/user-management/#create-user",
-      "Feature": "Create a new user",
-      "Function": "Create User",
-      "Pricing page?": "",
-      "Subscription Tier": "",
-      "Tech": ""
     }
   },
   {
@@ -645,8 +1030,25 @@
     "entire_row": {
       "Category": "Teams",
       "Documented?": "https://docs.layer5.io/cloud/identity/teams/",
-      "Feature": "Directly create a new user account within a team.",
-      "Function": "Add User to Team",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Establish new team for organizing groups of users and resource access.",
+      "Free Comparison Tier": "",
+      "Function": "Create Team",
+      "Pricing page?": "",
+      "Subscription Tier": "Team",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Teams",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "This governs the team's invitation permissions, determining whether the team is allowed to extend invitations to new individuals to join through open invite link.",
+      "Free Comparison Tier": "",
+      "Function": "Open Team Invite",
       "Pricing page?": "",
       "Subscription Tier": "Team",
       "Tech": "Cloud",
@@ -658,7 +1060,9 @@
     "entire_row": {
       "Category": "Organizations",
       "Documented?": "https://docs.layer5.io/cloud/identity/organizations/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Establish new organization for organizing teams, users, and resource access.",
+      "Free Comparison Tier": "",
       "Function": "Create Organization",
       "Pricing page?": "",
       "Subscription Tier": "Enterprise",
@@ -667,14 +1071,211 @@
     }
   },
   {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Edit organiaztions and add teams to it",
+      "Free Comparison Tier": "",
+      "Function": "Edit Organization",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Directly create a new user account within an organization.",
+      "Free Comparison Tier": "",
+      "Function": "Add User to Organization",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Send a request for a user to join an organization.",
+      "Free Comparison Tier": "",
+      "Function": "Invite User to Organization",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/users/user-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/users/user-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Discontinue user access to organization, teams and resources; cease billing accrual.",
+      "Free Comparison Tier": "",
+      "Function": "Remove User from Organization",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "See only organizations to which you are a member. See all other members within your membership teams.",
+      "Free Comparison Tier": "",
+      "Function": "View Org",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "See all organizations of which you are an administrator. See all members of those organizations.",
+      "Free Comparison Tier": "",
+      "Function": "View Organizations",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "See all organizations within a Cloud deployment. See all organizations, teams, and users.",
+      "Free Comparison Tier": "",
+      "Function": "View All Organizations",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+    "entire_row": {
+      "Category": "Organizations",
+      "Documented?": "https://docs.layer5.io/cloud/identity/organizations/org-management/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Decommission organization and suspend account from additional accruals.",
+      "Free Comparison Tier": "",
+      "Function": "Delete Organization",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+    "entire_row": {
+      "Category": "Organization",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Organizations can be assigned unique, validated custom domains through settings.",
+      "Free Comparison Tier": "",
+      "Function": "Custom Domain",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+    "entire_row": {
+      "Category": "Organization",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Assigned domains direct user traffic to organizations; clearing the field removes the assignment.",
+      "Free Comparison Tier": "",
+      "Function": "Domain Routing and Removal",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+    "entire_row": {
+      "Category": "Organization",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Create, update , delete and manage recogntions awarded by your organization",
+      "Free Comparison Tier": "",
+      "Function": "Manage Recognitions",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+    "entire_row": {
+      "Category": "Organization",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Create, update , delete and manage invitations to your organization",
+      "Free Comparison Tier": "",
+      "Function": "Manage invitations",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Roles",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Assign Keychains to Roles",
+      "Pricing page?": "",
+      "Subscription Tier": "Team",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Identity \u0026 Access Management"
+    }
+  },
+  {
     "pricing_page": "true",
     "entire_row": {
       "Category": "Dry-run",
-      "Documented?": "",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Test and verify configuration changes in a separate environment.",
+      "Free Comparison Tier": "",
       "Function": "Dry-run",
       "Pricing page?": "X",
-      "Subscription Tier": "Team",
+      "Subscription Tier": "TeamOperator",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Lifecycle Management"
     }
@@ -683,22 +1284,27 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Multiple Kubernetes Clusters",
-      "Documented?": "",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Ongoing synchronization of Kubernetes configuration, workloads and service mesh changes across any number of Kubernetes clusters.",
+      "Free Comparison Tier": "",
       "Function": "Multiple Kubernetes Clusters",
       "Pricing page?": "X",
-      "Subscription Tier": "Free",
+      "Subscription Tier": "TeamOperator",
       "Tech": "Server",
       "Theme (also: Keychain Name)": "Lifecycle Management"
     }
   },
   {
     "pricing_page": "true",
+    "documentation": "https://docs.meshery.io/reference/mesheryctl",
     "entire_row": {
       "Category": "mesheryctl",
-      "Documented?": "",
-      "Feature": "Seamlessly manage your configurations, deployments, and interactions through our intuitive and powerful command-line interface",
-      "Function": "all mesheryctl commands",
+      "Documented?": "https://docs.meshery.io/reference/mesheryctl",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Seamlessly manage your configurations, deployments, and interactions through our intuitive and powerful command-line interface: mesheryctl",
+      "Free Comparison Tier": "x",
+      "Function": "CLI",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
       "Tech": "Golang",
@@ -706,47 +1312,13 @@
     }
   },
   {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Cluster discovery",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Day 2 support for ongoing synchronization of Kubernetes configuration, workloads and service mesh changes.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "MeshSync"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Multiple Kubernetes Clusters",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Ongoing synchronization of Kubernetes configuration, workloads and service mesh changes across any number of Kubernetes clusters.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "Server"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "mesheryctl",
-      "Documented?": "",
-      "Feature": "Seamlessly manage your configurations, deployments, and interactions through our intuitive and powerful command-line interface",
-      "Function": "all mesheryctl commands",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "Golang"
-    }
-  },
-  {
     "documentation": "https://docs.layer5.io/cloud/catalog/metrics/",
     "entire_row": {
       "Category": "Settings",
       "Documented?": "https://docs.layer5.io/cloud/catalog/metrics/",
+      "Enterprise Comparison Tier": "",
       "Feature": "View already configured metrics",
+      "Free Comparison Tier": "x",
       "Function": "View Metrics",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -755,13 +1327,15 @@
     }
   },
   {
-    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/operator/",
     "entire_row": {
-      "Category": "Service Performance",
-      "Documented?": "",
-      "Feature": "Continuous visibility across all of your clusters and workloads.",
-      "Function": "Service Performance",
-      "Pricing page?": "X",
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/kanvas/operator/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Representation of infrastructure configuration and services",
+      "Pricing page?": "",
       "Subscription Tier": "Free",
       "Tech": "Kanvas",
       "Theme (also: Keychain Name)": "Kanvas"
@@ -771,12 +1345,120 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Service Performance",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Continuous visibility across all of your clusters and workloads.",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Continuous visibility across all of your clusters and workloads.",
+      "Free Comparison Tier": "",
+      "Function": "Service Performance",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
-      "Tech": "Kanvas"
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Components",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "A Component is a fundamental building block used to represent and define the infrastructure under management. Each component provides granular and specific support for your infrastructure and applications. This permission grants the user the ability to delete a component from canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Delete components",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Components",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "A Component is a fundamental building block used to represent and define the infrastructure under management. Each component provides granular and specific support for your infrastructure and applications. This permission grants the user the ability to clone a component, along with it's configuration, on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Clone components",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Components",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "A Component is a fundamental building block used to represent and define the infrastructure under management. Each component provides granular and specific support for your infrastructure and applications. This permission grants the user the ability to clone a component, along with it's configuration, on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Copy components",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Components",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "A Component is a fundamental building block used to represent and define the infrastructure under management. Each component provides granular and specific support for your infrastructure and applications. This permission grants the user the ability to lock a component's state present on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Lock components",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Components",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "A Component is a fundamental building block used to represent and define the infrastructure under management. Each component provides granular and specific support for your infrastructure and applications. This permission grants the user the ability to copy a component present on canvas. The canvas is where the design and all it's components are displayed and configured. This permission grants the user the ability to cofigure/edit/update a design by adding new components to the canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Add components",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Components",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "A Component is a fundamental building block used to represent and define the infrastructure under management. Each component provides granular and specific support for your infrastructure and applications. This permission grants the user the ability to configure the style of a component.",
+      "Free Comparison Tier": "",
+      "Function": "Configure component styles",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
+    "entire_row": {
+      "Category": "Design Patterns",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Designer allows users to draw shapes, lines, text, add custom styles, images and icons to represent the components and relationships of Kubernetes clusters as they see fit. This permission grants the user the ability to add text to the textboxes currently on canvas.",
+      "Free Comparison Tier": "x",
+      "Function": "Add text to textboxes",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
     }
   },
   {
@@ -784,7 +1466,9 @@
     "entire_row": {
       "Category": "Design Patterns",
       "Documented?": "https://docs.layer5.io/kanvas/concepts/relationships/#2-hierarchical-relationships",
+      "Enterprise Comparison Tier": "",
       "Feature": "",
+      "Free Comparison Tier": "x",
       "Function": "Use heirarchical relationships",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -794,13 +1478,46 @@
   },
   {
     "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
     "entire_row": {
       "Category": "Design Patterns",
-      "Documented?": "",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
+      "Enterprise Comparison Tier": "",
       "Feature": "This permission grants the user the ability to undo/redo any action in done in Kanvas",
+      "Free Comparison Tier": "x",
       "Function": "Undo or Redo",
       "Pricing page?": "X",
       "Subscription Tier": "Team",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
+    "entire_row": {
+      "Category": "Design Patterns",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Pencil is a tool mode that allows users to draw freehand shapes. This permission grants user the ability to use the pencil mode.",
+      "Free Comparison Tier": "x",
+      "Function": "Use Pencil",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
+    "entire_row": {
+      "Category": "Design Patterns",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/understanding-tool-modes/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Pen is a tool mode that allows users to draw edges (connections) from one component to another. This permission grants user the ability to use the pencil mode.",
+      "Free Comparison Tier": "x",
+      "Function": "Use Pen",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
       "Tech": "Kanvas",
       "Theme (also: Keychain Name)": "Kanvas"
     }
@@ -811,7 +1528,9 @@
     "entire_row": {
       "Category": "Design Patterns",
       "Documented?": "https://docs.layer5.io/kanvas/designer/whiteboarding/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Ability to freeform draw any shapes, draw edges",
+      "Free Comparison Tier": "x",
       "Function": "Whiteboarding",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -821,11 +1540,14 @@
   },
   {
     "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
       "Category": "Visual Design",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Drag-n-drop cloud native infrastructure designer to configure, model, and deploy your workloads",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Drag-n-drop cloud native infrastructure designer to configure, model, and deploy your workloads",
+      "Free Comparison Tier": "x",
+      "Function": "Visual Design",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
       "Tech": "Kanvas",
@@ -833,53 +1555,332 @@
     }
   },
   {
-    "documentation": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/",
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
     "entire_row": {
-      "Category": "Visualizer",
-      "Documented?": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/",
-      "Feature": "See all views withing a workspace",
+      "Category": "Design Patterns",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/import-designs/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "The canvas is where the design and all it's components are displayed and configured. This permission grants the user the ability to remove all current entities from the canvas and create a new one to start from scratch",
+      "Free Comparison Tier": "",
+      "Function": "Create blank design in Kanvas",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/kanvas/designer/comments/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "In-line commenting. Threaded discussions. Notifications w/user mentions. Silence notifications. Resolve and reopen comments. Comment history.",
+      "Free Comparison Tier": "",
+      "Function": "Collaborative Design Review",
+      "Pricing page?": "x",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/comments/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to view comments in a design on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "View comments",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/comments/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to resolve a comment thread in a design on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Resolve a comment",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/comments/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to delete a comment on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Delete comments",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/comments/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to clone a comment on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Clone comments",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/comments/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to copy a comment on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Copy comments",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to lock a comment on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Lock comments",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/comments/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/comments/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to add a comment on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Add comments",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to configure the styles of a comment on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Configure comment styles",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+    "entire_row": {
+      "Category": "Design Review",
+      "Documented?": "https://docs.layer5.io/kanvas/getting-started/working-with-components/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Kanvas’s Designer enables users to place comments “inline” within designs. Comments can be used to offer feedback to team members, take detailed design notes, capture helpful tips for team members, and include justification as to infrastructure and application configuration decisions. This permission grants the user the ability to reset the styles of a comment on canvas.",
+      "Free Comparison Tier": "",
+      "Function": "Reset comment styles",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/operator/operator-views/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/kanvas/operator/operator-views/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "See all views within a workspace",
+      "Free Comparison Tier": "",
       "Function": "View Views",
       "Pricing page?": "",
-      "Subscription Tier": "Team",
+      "Subscription Tier": "TeamOperator",
       "Tech": "Server",
-      "Theme (also: Keychain Name)": "MeshMap"
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/operator/operator-views/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/kanvas/operator/operator-views/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Create a new view",
+      "Free Comparison Tier": "",
+      "Function": "Create View",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Kanvas"
     }
   },
   {
     "documentation": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/#4-delete-a-view",
     "entire_row": {
-      "Category": "Visualizer",
+      "Category": "Operator",
       "Documented?": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/#4-delete-a-view",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Dissolve environment and all connection memberships. Leave associated resources intact.",
+      "Free Comparison Tier": "",
       "Function": "Delete View",
       "Pricing page?": "",
-      "Subscription Tier": "Team",
+      "Subscription Tier": "TeamOperator",
       "Tech": "Server",
-      "Theme (also: Keychain Name)": "MeshMap"
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/operator/operator-views/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/kanvas/operator/operator-views/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Edit environment and it connection membership",
+      "Free Comparison Tier": "",
+      "Function": "Edit View",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Add new views to workspace",
+      "Free Comparison Tier": "",
+      "Function": "Assign Views to Workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Remove views from workspace",
+      "Free Comparison Tier": "",
+      "Function": "Unassign Views from Workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Kanvas"
     }
   },
   {
     "documentation": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/#5-export-a-view",
     "entire_row": {
-      "Category": "Visualizer",
+      "Category": "Operator",
       "Documented?": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/#5-export-a-view",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Export views to JSON format",
+      "Free Comparison Tier": "",
       "Function": "Export views",
       "Pricing page?": "",
-      "Subscription Tier": "Team",
+      "Subscription Tier": "TeamOperator",
       "Tech": "Server",
-      "Theme (also: Keychain Name)": "MeshMap"
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/operator/operator-views/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/kanvas/operator/operator-views/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Open a pre-existing view",
+      "Free Comparison Tier": "",
+      "Function": "Open view",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/operator/operator-views/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/kanvas/operator/operator-views/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Saved view",
+      "Free Comparison Tier": "",
+      "Function": "Save Views",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
     }
   },
   {
     "documentation": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/#3-share-a-view",
     "entire_row": {
-      "Category": "Visualizer",
+      "Category": "Operator",
       "Documented?": "https://docs.layer5.io/kanvas/visualizer/visualizer-views/#3-share-a-view",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Share Views",
+      "Free Comparison Tier": "",
       "Function": "Share Views",
       "Pricing page?": "",
-      "Subscription Tier": "Team",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/operator/operator-views/",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "https://docs.layer5.io/kanvas/operator/operator-views/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Clone Views",
+      "Free Comparison Tier": "",
+      "Function": "Clone Views",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator",
       "Tech": "Kanvas",
       "Theme (also: Keychain Name)": "Kanvas"
     }
@@ -887,9 +1888,86 @@
   {
     "pricing_page": "true",
     "entire_row": {
+      "Category": "Operator",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Direct terminal access to one ore more pods/containers simultaneously. Integrated experience.",
+      "Free Comparison Tier": "",
+      "Function": "Web-based Terminal",
+      "Pricing page?": "X",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "Kanvas",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "pricing_page": "true",
+    "entire_row": {
+      "Category": "Operator",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Real-time resource metrics.",
+      "Free Comparison Tier": "",
+      "Function": "Standard Events and Metrics",
+      "Pricing page?": "X",
+      "Subscription Tier": "TeamOperator",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Kanvas"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/",
+    "entire_row": {
+      "Category": "On-premise Deployments",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Meshery Cloud",
+      "Free Comparison Tier": "",
+      "Function": "Helm-based",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Helm",
+      "Theme (also: Keychain Name)": "Offer Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/",
+    "entire_row": {
+      "Category": "On-premise Deployments",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Postgres",
+      "Free Comparison Tier": "",
+      "Function": "Helm-based",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Helm",
+      "Theme (also: Keychain Name)": "Offer Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/",
+    "entire_row": {
+      "Category": "On-premise Deployments",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Hydra",
+      "Free Comparison Tier": "",
+      "Function": "Helm-based",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "Helm",
+      "Theme (also: Keychain Name)": "Offer Management"
+    }
+  },
+  {
+    "pricing_page": "true",
+    "entire_row": {
       "Category": "Load Generation",
       "Documented?": "",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Single Load Generator: Support testing multiple endpoints simultaneously.",
+      "Free Comparison Tier": "",
       "Function": "Load Generation",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -902,7 +1980,9 @@
     "entire_row": {
       "Category": "Load Generation",
       "Documented?": "",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Multiple Meshery Servers or Meshery Adapters generating load, collecting and coalescing results into a single report.",
+      "Free Comparison Tier": "",
       "Function": "Distributed Load Generator",
       "Pricing page?": "X",
       "Subscription Tier": "Team",
@@ -915,7 +1995,9 @@
     "entire_row": {
       "Category": "Performance Profiles",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Share performance profiles and test results with individual users or teams.",
+      "Free Comparison Tier": "",
       "Function": "Performance Profiles",
       "Pricing page?": "X",
       "Subscription Tier": "Team",
@@ -928,7 +2010,9 @@
     "entire_row": {
       "Category": "Comparative Testing",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Historical views: Infrastructure-centric",
+      "Free Comparison Tier": "",
       "Function": "Comparative Testing",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -941,7 +2025,9 @@
     "entire_row": {
       "Category": "Comparative Testing",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Detect real-time anomalies.",
+      "Free Comparison Tier": "",
       "Function": "Comparative Testing",
       "Pricing page?": "X",
       "Subscription Tier": "Team",
@@ -954,7 +2040,9 @@
     "entire_row": {
       "Category": "Continuous Quality of Service Monitoring",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Experience uninterrupted oversight of your service quality with our Continuous Quality of Service Monitoring.",
+      "Free Comparison Tier": "",
       "Function": "Continuous Quality of Service Monitoring",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -967,7 +2055,9 @@
     "entire_row": {
       "Category": "MeshMark",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Identify the cost of a specific network function.",
+      "Free Comparison Tier": "",
       "Function": "MeshMark",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -976,125 +2066,287 @@
     }
   },
   {
-    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
     "entire_row": {
-      "Category": "Load Generation",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Single Load Generator: Support testing multiple endpoints simultaneously.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "Server"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Load Generation",
-      "Documented?": "",
-      "Feature": "Multiple Meshery Servers or Meshery Adapters generating load, collecting and coalescing results into a single report.",
-      "Function": "Distributed Load Generator",
-      "Pricing page?": "X",
+      "Category": "Distributed Performance Analysis",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Automatically suggest timeout settings for a given service.",
+      "Free Comparison Tier": "",
+      "Function": "Analysis",
+      "Pricing page?": "",
       "Subscription Tier": "Team",
-      "Tech": "GetNighthawk"
+      "Tech": "GetNighthawk",
+      "Theme (also: Keychain Name)": "Performance Management"
     }
   },
   {
-    "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
     "entire_row": {
-      "Category": "Performance Profiles",
-      "Documented?": "",
+      "Category": "Performance",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "View all performance profiles",
+      "Free Comparison Tier": "",
+      "Function": "View performance profiles",
+      "Pricing page?": "",
+      "Subscription Tier": "TeamOperator, Enterprise",
+      "Tech": "Server",
+      "Theme (also: Keychain Name)": "Performance Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/",
+    "entire_row": {
+      "Category": "Overview",
+      "Documented?": "https://docs.layer5.io/cloud/security/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "",
-      "Function": "Share performance profiles and test results with individual users or teams.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Team",
-      "Tech": "Cloud"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Comparative Testing",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Historical views: Infrastructure-centric",
-      "Pricing page?": "X",
+      "Free Comparison Tier": "x",
+      "Function": "View Overview",
+      "Pricing page?": "",
       "Subscription Tier": "Free",
-      "Tech": "Server"
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
     }
   },
   {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Comparative Testing",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Detect real-time anomalies.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Team",
-      "Tech": "Cloud"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Continuous Quality of Service Monitoring",
-      "Documented?": "",
-      "Feature": "Experience uninterrupted oversight of your service quality with our Continuous Quality of Service Monitoring.",
-      "Function": "",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "Server"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "MeshMark",
-      "Documented?": "",
-      "Feature": "Identify the cost of a specific network function.",
-      "Function": "MeshMark",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "Server"
-    }
-  },
-  {
-    "documentation": "https://docs.layer5.io/cloud/security/sessions/#what-sessions-are",
+    "documentation": "https://docs.layer5.io/cloud/security/sessions/",
     "entire_row": {
       "Category": "Sessions",
-      "Documented?": "https://docs.layer5.io/cloud/security/sessions/#what-sessions-are",
+      "Documented?": "https://docs.layer5.io/cloud/security/sessions/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "",
+      "Free Comparison Tier": "x",
       "Function": "View Sessions",
       "Pricing page?": "",
-      "Subscription Tier": "",
+      "Subscription Tier": "Free",
       "Tech": "",
       "Theme (also: Keychain Name)": "Security Management"
     }
   },
   {
-    "documentation": "https://docs.layer5.io/cloud/security/tokens/#creating-tokens",
+    "documentation": "https://docs.layer5.io/cloud/security/sessions/",
+    "entire_row": {
+      "Category": "Sessions",
+      "Documented?": "https://docs.layer5.io/cloud/security/sessions/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "x",
+      "Function": "Logout from a Session",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/tokens/",
     "entire_row": {
       "Category": "Tokens",
-      "Documented?": "https://docs.layer5.io/cloud/security/tokens/#creating-tokens",
+      "Documented?": "https://docs.layer5.io/cloud/security/tokens/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "",
-      "Function": "Create Token",
+      "Free Comparison Tier": "",
+      "Function": "View Tokens",
       "Pricing page?": "",
-      "Subscription Tier": "",
+      "Subscription Tier": "Enterprise",
       "Tech": "",
       "Theme (also: Keychain Name)": "Security Management"
     }
   },
   {
-    "documentation": "https://docs.layer5.io/cloud/security/keys/",
+    "documentation": "https://docs.layer5.io/cloud/security/tokens/",
+    "entire_row": {
+      "Category": "Tokens",
+      "Documented?": "https://docs.layer5.io/cloud/security/tokens/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Download Token",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/tokens/",
+    "entire_row": {
+      "Category": "Tokens",
+      "Documented?": "https://docs.layer5.io/cloud/security/tokens/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Delete Token",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/tokens/",
+    "entire_row": {
+      "Category": "Tokens",
+      "Documented?": "https://docs.layer5.io/cloud/security/tokens/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Create Token",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/tokens/",
     "entire_row": {
       "Category": "Keys",
-      "Documented?": "https://docs.layer5.io/cloud/security/keys/",
+      "Documented?": "https://docs.layer5.io/cloud/security/tokens/",
+      "Enterprise Comparison Tier": "x",
       "Feature": "",
+      "Free Comparison Tier": "",
       "Function": "View Keys",
       "Pricing page?": "",
-      "Subscription Tier": "",
+      "Subscription Tier": "Enterprise",
       "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "View Keychains",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Create Keychain",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Default keychain for individual users",
+      "Free Comparison Tier": "",
+      "Function": "User View",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Default keychain for management of users and their roles.",
+      "Free Comparison Tier": "",
+      "Function": "User Management",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Default keychain for management of teams and user membership.",
+      "Free Comparison Tier": "",
+      "Function": "Team View",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Default keychain for management of teams and user membership.",
+      "Free Comparison Tier": "",
+      "Function": "Team Management",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Default keychain for management of orgs, teams, and their users.",
+      "Free Comparison Tier": "",
+      "Function": "Organization Management",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Default keychain for event management (stats, audit, summary)",
+      "Free Comparison Tier": "",
+      "Function": "Event Management",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
+      "Theme (also: Keychain Name)": "Security Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/security/keychains/",
+    "entire_row": {
+      "Category": "Keychains",
+      "Documented?": "https://docs.layer5.io/cloud/security/keychains/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Default keychain for security management (keys, keychains, credentials, tokens)",
+      "Free Comparison Tier": "",
+      "Function": "Security Management",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "Cloud",
       "Theme (also: Keychain Name)": "Security Management"
     }
   },
@@ -1103,10 +2355,147 @@
     "entire_row": {
       "Category": "Workspace",
       "Documented?": "https://docs.layer5.io/cloud/spaces/workspaces/",
-      "Feature": "See all workspaces within an organisation",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "See all workspaces within an organization",
+      "Free Comparison Tier": "x",
       "Function": "View Workspace",
       "Pricing page?": "",
-      "Subscription Tier": "Enterprise",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Dissolve workspace and all team and environment memberships. Leave associated resources intact",
+      "Free Comparison Tier": "x",
+      "Function": "Delete Workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Edit workspace and it's team and environment membership",
+      "Free Comparison Tier": "x",
+      "Function": "Edit Workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Create new workspace",
+      "Free Comparison Tier": "x",
+      "Function": "Create Workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Add new team to workspace",
+      "Free Comparison Tier": "x",
+      "Function": "Assign team to workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Remove team from workspace",
+      "Free Comparison Tier": "x",
+      "Function": "Remove team from workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Add new environment to workspace",
+      "Free Comparison Tier": "x",
+      "Function": "Assign environment to workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Remove environment from workspace",
+      "Free Comparison Tier": "x",
+      "Function": "Remove environment from workspace",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Assign designs to workspaces",
+      "Free Comparison Tier": "x",
+      "Function": "Assign Designs to Workspaces",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Workspace Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+    "entire_row": {
+      "Category": "Workspace",
+      "Documented?": "https://docs.layer5.io/cloud/spaces/managing-workspaces/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "Remove designs from workspaces",
+      "Free Comparison Tier": "x",
+      "Function": "Remove Designs from Workspaces",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
       "Tech": "",
       "Theme (also: Keychain Name)": "Workspace Management"
     }
@@ -1116,7 +2505,9 @@
     "entire_row": {
       "Category": "Environments",
       "Documented?": "https://docs.layer5.io/cloud/spaces/environments/#deleting-an-environment",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Dissolve environment and all connection memberships. Leave associated resources intact.",
+      "Free Comparison Tier": "",
       "Function": "Delete Environment",
       "Pricing page?": "",
       "Subscription Tier": "Enterprise",
@@ -1125,11 +2516,88 @@
     }
   },
   {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Catalog",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "View all items in catalog",
+      "Free Comparison Tier": "x",
+      "Function": "View Catalog",
+      "Pricing page?": "",
+      "Subscription Tier": "Free",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Catalog",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Edit catalog items",
+      "Free Comparison Tier": "",
+      "Function": "Edit Catalog Items",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+    "entire_row": {
+      "Category": "Catalog",
+      "Documented?": "https://docs.layer5.io/kanvas/designer/publishing-designs/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Unpublish items from catalog",
+      "Free Comparison Tier": "",
+      "Function": "Unpublish Catalog Items",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Catalog",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Set item information or details of a catalog item",
+      "Free Comparison Tier": "",
+      "Function": "Details of Catalog Item",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+    "entire_row": {
+      "Category": "Catalog",
+      "Documented?": "https://docs.layer5.io/cloud/catalog/exploring-the-catalog/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Download a catalog item",
+      "Free Comparison Tier": "",
+      "Function": "Download Catalog Item",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Catalog Management"
+    }
+  },
+  {
     "documentation": "https://docs.layer5.io/cloud/getting-started/creating-a-design-from-templete.md/",
     "entire_row": {
       "Category": "Catalog",
       "Documented?": "https://docs.layer5.io/cloud/getting-started/creating-a-design-from-templete.md/",
+      "Enterprise Comparison Tier": "",
       "Feature": "Clone any item from catalog",
+      "Free Comparison Tier": "",
       "Function": "Clone Catalog Item",
       "Pricing page?": "",
       "Subscription Tier": "",
@@ -1138,12 +2606,149 @@
     }
   },
   {
+    "documentation": "https://docs.layer5.io/cloud/academy/",
+    "entire_row": {
+      "Category": "Academy",
+      "Documented?": "https://docs.layer5.io/cloud/academy/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "A comprehensive learning management system for creators and instructors on how to build, manage, and extend educational content like learning paths, challenges, and certifications with an inclusive, collaborative, hands-on learning environment for students.",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Hugo",
+      "Theme (also: Keychain Name)": "Academy"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/academy/creating-content/",
+    "entire_row": {
+      "Category": "Content Creator Guide",
+      "Documented?": "https://docs.layer5.io/cloud/academy/creating-content/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Learn how to create, manage, and publish learning paths, challenges, and certifications on the Academy platform.",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Hugo",
+      "Theme (also: Keychain Name)": "Academy"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/academy/creating-content/extending-the-academy/",
+    "entire_row": {
+      "Category": "Extending the Academy",
+      "Documented?": "https://docs.layer5.io/cloud/academy/creating-content/extending-the-academy/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "A high-level guide to understanding the architecture, features, and workflow for creating custom content on the Academy platform.",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Hugo",
+      "Theme (also: Keychain Name)": "Academy"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/academy/creating-content/creating-your-learning-path/",
+    "entire_row": {
+      "Category": "Creating Your First Learning Path",
+      "Documented?": "https://docs.layer5.io/cloud/academy/creating-content/creating-your-learning-path/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "A hands-on tutorial that walks you through creating, structuring, and testing a custom learning path for the Academy.",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Hugo",
+      "Theme (also: Keychain Name)": "Academy"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/academy/creating-content/integrating-assessments-in-the-academy/",
+    "entire_row": {
+      "Category": "Integrating Assessments in the Academy",
+      "Documented?": "https://docs.layer5.io/cloud/academy/creating-content/integrating-assessments-in-the-academy/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Learn how to spice up the Academy with interactive assessments that keep learners engaged.",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Hugo",
+      "Theme (also: Keychain Name)": "Academy"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/academy/creating-content/building-certifications/",
+    "entire_row": {
+      "Category": "Certifications",
+      "Documented?": "https://docs.layer5.io/cloud/academy/creating-content/building-certifications/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "A step-by-step guide to building a professional certification in the Academy.",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Hugo",
+      "Theme (also: Keychain Name)": "Academy"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/academy/creating-content/instructor-console-guide/",
+    "entire_row": {
+      "Category": "Academy Instructor Console Guide",
+      "Documented?": "https://docs.layer5.io/cloud/academy/creating-content/instructor-console-guide/",
+      "Enterprise Comparison Tier": "x",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "A comprehensive guide to using the Instructor Console. Learn how to track learner progress, analyze test performance, and manage your academy’s content and metrics.",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "Hugo",
+      "Theme (also: Keychain Name)": "Academy"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/reference/api-reference/",
+    "entire_row": {
+      "Category": "Cloud API",
+      "Documented?": "https://docs.layer5.io/cloud/reference/api-reference/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Provides a powerful and flexible way to interact with the platform, enabling automation, integration, and customization to optimize your cloud native development and management processes.",
+      "Free Comparison Tier": "",
+      "Function": "REST API Reference",
+      "Pricing page?": "",
+      "Subscription Tier": "",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Support and Deployment"
+    }
+  },
+  {
+    "documentation": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+    "entire_row": {
+      "Category": "White Label",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted/white-labeling/",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Customize the appearance and branding of your engineering platform powered by Cloud.",
+      "Free Comparison Tier": "",
+      "Function": "White Label",
+      "Pricing page?": "",
+      "Subscription Tier": "Enterprise",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Support and Deployment"
+    }
+  },
+  {
     "pricing_page": "true",
     "documentation": "https://docs.layer5.io/cloud/getting-started/support/#contacting-support",
     "entire_row": {
       "Category": "Community Support",
       "Documented?": "https://docs.layer5.io/cloud/getting-started/support/#contacting-support",
+      "Enterprise Comparison Tier": "",
       "Feature": "Get help with most of your Meshery questions and issues in our Community Forum.",
+      "Free Comparison Tier": "",
       "Function": "Community Support",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -1155,11 +2760,13 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Standard Support",
-      "Documented?": "",
-      "Feature": "Layer5 Support can help you troubleshoot issues you run into while using Meshery. Get support via the web.",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Support can help you troubleshoot issues you run into while using Meshery. Get support via the web.",
+      "Free Comparison Tier": "",
       "Function": "Standard Support",
       "Pricing page?": "X",
-      "Subscription Tier": "Team",
+      "Subscription Tier": "TeamDesigner",
       "Tech": "",
       "Theme (also: Keychain Name)": "Support and Deployment"
     }
@@ -1168,8 +2775,10 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Premium and Premium Plus Support",
-      "Documented?": "",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "",
       "Feature": "With Premium, get a 30-minute SLA and 24/7 web and phone support. With Premium Plus, get everything in Premium plus your own Support Account Manager and more.",
+      "Free Comparison Tier": "",
       "Function": "Premium and Premium Plus Support",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
@@ -1179,10 +2788,13 @@
   },
   {
     "pricing_page": "true",
+    "documentation": "https://docs.layer5.io/cloud/self-hosted",
     "entire_row": {
       "Category": "Self-hosted Deployment",
-      "Documented?": "",
-      "Feature": "Self-hosted Meshery Cloud for on-prem appliances or self-managed cloud tenants.",
+      "Documented?": "https://docs.layer5.io/cloud/self-hosted",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Self-hosted Cloud for on-prem appliances or self-managed cloud tenants. Keep your designs internal to your workplace. Get remote support when you need it.",
+      "Free Comparison Tier": "",
       "Function": "Self-hosted Deployment",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
@@ -1194,9 +2806,26 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Phone Support",
-      "Documented?": "",
-      "Feature": "Layer5 Support can help you troubleshoot issues you run into while using Meshery. Get support via phone.",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Support can help you troubleshoot issues you run into while using Meshery. Get support via phone.",
+      "Free Comparison Tier": "",
       "Function": "Phone Support",
+      "Pricing page?": "X",
+      "Subscription Tier": "TeamDesigner",
+      "Tech": "",
+      "Theme (also: Keychain Name)": "Support and Deployment"
+    }
+  },
+  {
+    "pricing_page": "true",
+    "entire_row": {
+      "Category": "Invoice Billing",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "",
+      "Feature": "",
+      "Free Comparison Tier": "",
+      "Function": "Pay bills via invoice, rather than using your credit card.",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
       "Tech": "",
@@ -1206,22 +2835,11 @@
   {
     "pricing_page": "true",
     "entire_row": {
-      "Category": "Serverless Pricing",
-      "Documented?": "",
-      "Feature": "Subscription plan management. Transformation of workflow pricing model.",
-      "Function": "Serverless Pricing",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "WASM",
-      "Theme (also: Keychain Name)": "Business Performance"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
       "Category": "Screenshots",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Capture and share visual snapshots of your work with ease using our Screenshots feature.",
+      "Free Comparison Tier": "",
       "Function": "Screenshots",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -1234,7 +2852,9 @@
     "entire_row": {
       "Category": "Notification Center",
       "Documented?": "https://docs.layer5.io/cloud/identity/users/notification-preferences/",
+      "Enterprise Comparison Tier": "",
       "Feature": "",
+      "Free Comparison Tier": "",
       "Function": "Events: Reporting of asynchronous events.",
       "Pricing page?": "",
       "Subscription Tier": "Free",
@@ -1246,8 +2866,10 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Notification Center",
-      "Documented?": "",
+      "Documented?": "AVAILABLE IN MESHERY DOCS",
+      "Enterprise Comparison Tier": "",
       "Feature": "Consolidate all important updates, alerts, and messages in one centralized hub, ensuring you never miss a critical communication or task.",
+      "Free Comparison Tier": "",
       "Function": "Notification Center",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -1259,11 +2881,13 @@
     "pricing_page": "true",
     "entire_row": {
       "Category": "Audit Trail",
-      "Documented?": "",
+      "Documented?": "MISSING",
+      "Enterprise Comparison Tier": "x",
       "Feature": "Detailed accounting of user activity. Historical record or each action taken.",
+      "Free Comparison Tier": "",
       "Function": "Audit Trail",
       "Pricing page?": "X",
-      "Subscription Tier": "Free",
+      "Subscription Tier": "Enterprise",
       "Tech": "",
       "Theme (also: Keychain Name)": "Incident Management"
     }
@@ -1273,7 +2897,9 @@
     "entire_row": {
       "Category": "Alert Generation",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Dismiss individual; Dismiss bulk.",
+      "Free Comparison Tier": "",
       "Function": "Alert Generation",
       "Pricing page?": "X",
       "Subscription Tier": "Free",
@@ -1286,7 +2912,9 @@
     "entire_row": {
       "Category": "Calendaring",
       "Documented?": "",
+      "Enterprise Comparison Tier": "",
       "Feature": "Get integration with GSuite and integration with Microsoft Outlook.",
+      "Free Comparison Tier": "",
       "Function": "Calendaring",
       "Pricing page?": "X",
       "Subscription Tier": "Team",
@@ -1299,7 +2927,9 @@
     "entire_row": {
       "Category": "Traffic Replay",
       "Documented?": "",
-      "Feature": "Visual event replay in MeshMap",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Visual event replay in Kanvas",
+      "Free Comparison Tier": "",
       "Function": "Traffic Replay",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",
@@ -1308,180 +2938,13 @@
     }
   },
   {
-    "documentation": "https://docs.layer5.io/cloud/getting-started/creating-a-design-from-templete.md/",
-    "entire_row": {
-      "Category": "Catalog",
-      "Documented?": "https://docs.layer5.io/cloud/getting-started/creating-a-design-from-templete.md/",
-      "Feature": "Clone any item from catalog",
-      "Function": "Clone Catalog Item",
-      "Pricing page?": "",
-      "Subscription Tier": "",
-      "Tech": ""
-    }
-  },
-  {
-    "pricing_page": "true",
-    "documentation": "https://docs.layer5.io/cloud/getting-started/support/#contacting-support",
-    "entire_row": {
-      "Category": "Community Support",
-      "Documented?": "https://docs.layer5.io/cloud/getting-started/support/#contacting-support",
-      "Feature": "Get help with most of your Meshery questions and issues in our Community Forum.",
-      "Function": "Community Support",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": ""
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Standard Support",
-      "Documented?": "",
-      "Feature": "Layer5 Support can help you troubleshoot issues you run into while using Meshery. Get support via the web.",
-      "Function": "Standard Support",
-      "Pricing page?": "X",
-      "Subscription Tier": "Team",
-      "Tech": ""
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Premium and Premium Plus Support",
-      "Documented?": "",
-      "Feature": "With Premium, get a 30-minute SLA and 24/7 web and phone support. With Premium Plus, get everything in Premium plus your own Support Account Manager and more.",
-      "Function": "Premium and Premium Plus Support",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": ""
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Self-hosted Deployment",
-      "Documented?": "",
-      "Feature": "Self-hosted Meshery Cloud for on-prem appliances or self-managed cloud tenants.",
-      "Function": "Self-hosted Deployment",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": ""
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Phone Support",
-      "Documented?": "",
-      "Feature": "Layer5 Support can help you troubleshoot issues you run into while using Meshery. Get support via phone.",
-      "Function": "Phone Support",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": ""
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Serverless Pricing",
-      "Documented?": "",
-      "Feature": "Subscription plan management. Transformation of workflow pricing model.",
-      "Function": "Serverless Pricing",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "WASM"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Screenshots",
-      "Documented?": "",
-      "Feature": "Capture and share visual snapshots of your work with ease using our Screenshots feature.",
-      "Function": "Screenshots",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "WASM"
-    }
-  },
-  {
-    "documentation": "https://docs.layer5.io/cloud/identity/users/notification-preferences/",
-    "entire_row": {
-      "Category": "Notification Center",
-      "Documented?": "https://docs.layer5.io/cloud/identity/users/notification-preferences/",
-      "Feature": "",
-      "Function": "Events: Reporting of asynchronous events.",
-      "Pricing page?": "",
-      "Subscription Tier": "Free",
-      "Tech": "Server"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Notification Center",
-      "Documented?": "",
-      "Feature": "Consolidate all important updates, alerts, and messages in one centralized hub, ensuring you never miss a critical communication or task.",
-      "Function": "Notification Center",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "Server"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Audit Trail",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Detailed accounting of user activity. Historical record or each action taken.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": ""
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Alert Generation",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Dismiss individual; Dismiss bulk.",
-      "Pricing page?": "X",
-      "Subscription Tier": "Free",
-      "Tech": "Server UI"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Calendaring",
-      "Documented?": "",
-      "Feature": "Get integration with GSuite and integration with Microsoft Outlook.",
-      "Function": "Calendaring",
-      "Pricing page?": "X",
-      "Subscription Tier": "Team",
-      "Tech": "Golang"
-    }
-  },
-  {
-    "pricing_page": "true",
-    "entire_row": {
-      "Category": "Traffic Replay",
-      "Documented?": "",
-      "Feature": "",
-      "Function": "Visual event replay in MeshMap",
-      "Pricing page?": "X",
-      "Subscription Tier": "Enterprise",
-      "Tech": "Postgres"
-    }
-  },
-  {
     "pricing_page": "true",
     "entire_row": {
       "Category": "Notification Integrations",
       "Documented?": "",
-      "Feature": "Access a variety of third-party applications, right from MeshMap. Send a message to Slack, identify an on-duty team to page, or raise an alarm in Datadog.",
+      "Enterprise Comparison Tier": "",
+      "Feature": "Access a variety of third-party applications, right from Kanvas. Send a message to Slack, identify an on-duty team to page, or raise an alarm in Datadog.",
+      "Free Comparison Tier": "",
       "Function": "Notification Integrations",
       "Pricing page?": "X",
       "Subscription Tier": "Enterprise",

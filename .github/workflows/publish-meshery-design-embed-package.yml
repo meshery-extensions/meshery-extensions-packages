@@ -1,0 +1,65 @@
+name: Publish Meshery Design Embed Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package Version"
+        required: true
+        default: "v1.0.0"
+        type: string
+  
+env:
+  HUSKY: 0
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: meshery-design-embed 
+    permissions:
+      id-token: write  # Required for OIDC trusted publishing
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref_name }}
+          sparse-checkout: |
+            meshery-design-embed
+            .github
+          sparse-checkout-cone-mode: false
+
+      - name: Ensure workflow runs from the default branch
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "${{ github.event.repository.default_branch }}" ]; then
+            echo "This workflow must be run from ${{ github.event.repository.default_branch }}."
+            exit 1
+          fi
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: "https://registry.npmjs.org"
+          scope: "@layer5"
+
+      - name: "Set Package Version"
+        uses: reedyuk/npm-version@1.2.2
+        with:
+          version: ${{ inputs.version }}
+          package: "meshery-design-embed/"
+
+      - name: Install, Build, and Publish Package
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
+          npm publish --provenance --access public --verbose
+        env:
+          NODE_AUTH_TOKEN: ''  # Explicitly empty for install
+        working-directory: meshery-design-embed

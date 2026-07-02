@@ -20,10 +20,10 @@ on:
 jobs:
   smoke-test-production:
     name: Production end-to-end tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Meshery-extensions code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: layer5labs/meshery-extensions
           path: ./meshery-extensions
@@ -31,11 +31,11 @@ jobs:
           ref: "master"
           token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: "22.x"
           cache: "npm"
-          cache-dependency-path: 'meshery-extensions/meshmap/package-lock.json'
+          cache-dependency-path: 'meshery-extensions/ui/package-lock.json'
       - name: show tree
         run: tree  -L 2
       - name: Install Playwright dependencies
@@ -48,9 +48,16 @@ jobs:
         env:
           REMOTE_PROVIDER_USER_EMAIL: ${{ secrets.LAYER5_CLOUD_TESTING_BOT_EMAIL }}
           REMOTE_PROVIDER_USER_PASSWORD: ${{ secrets.LAYER5_CLOUD_TESTING_BOT_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        id: test-results
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-test-results
+          path: meshery-extensions/tests/test-results/
+          retention-days: 14
       - name: Send Email on Production Release Failure
         if: ${{ failure() }}
-        uses: dawidd6/action-send-mail@v3.7.1
+        uses: dawidd6/action-send-mail@v6
         env:
           msg: ${{ inputs.project }} production smoke test failure
         with:

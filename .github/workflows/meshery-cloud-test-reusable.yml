@@ -1,0 +1,785 @@
+name: Layer5 Cloud Tests
+
+on:
+  workflow_call:
+    inputs:
+      pr_commit_sha:
+        description: "Git commit SHA to checkout for testing"
+        required: true
+        type: string
+      pr_number:
+        description: "PR number for comment updates (empty for push events)"
+        default: ""
+        required: false
+        type: string
+      run_integration_tests:
+        description: "Whether to run integration tests"
+        default: false
+        required: false
+        type: boolean
+      node_version:
+        description: "Node.js version for UI tests"
+        required: false
+        default: "22.x"
+        type: string
+    secrets:
+      GH_ACCESS_TOKEN:
+        required: true
+
+  workflow_dispatch:
+    inputs:
+      pr_commit_sha:
+        description: "Git commit SHA to checkout for testing"
+        required: true
+        type: string
+      pr_number:
+        description: "PR number for comment updates (leave empty for master/qa runs)"
+        required: false
+        default: ""
+      run_integration_tests:
+        description: "Whether to run integration tests"
+        required: false
+        default: false
+        type: boolean
+      node_version:
+        description: "Node.js version for UI tests"
+        required: false
+        default: "22.x"
+        type: string
+
+jobs:
+  server-tests:
+    name: Server Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      PR_NUMBER: ${{ inputs.pr_number }}
+    steps:
+      - name: Checkout for composite action
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/actions/cloud-comment
+          sparse-checkout-cone-mode: false
+
+      - name: Comment starting
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: "Starting Cloud Server tests ([takes approximately 8 min end-to-end](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
+          append: false
+          recreate: true
+
+      #------------------------------------------
+      - name: Checkout Cloud code
+        uses: actions/checkout@v6
+        with:
+          repository: layer5io/meshery-cloud
+          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
+          fetch-depth: 1
+          path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Comment checkout success
+        if: success()
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":heavy_check_mark: Checked out meshery-cloud repo."
+      - name: Comment checkout failure
+        if: failure()
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":x: Failed to clone meshery-cloud repo."
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26.4"
+          check-latest: true
+          cache: true
+
+      - name: Download dependencies
+        working-directory: meshery-cloud
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Comment Go setup success
+        if: success()
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":heavy_check_mark: Setup Golang environment. Running unit tests... (takes approximately 3 min)"
+      - name: Comment Go setup failure
+        if: failure()
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":x: Failed to setup Golang environment."
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Run unit tests
+        id: unit-tests
+        continue-on-error: true
+        working-directory: meshery-cloud
+        shell: bash
+        run: |
+          set -o pipefail
+          make server-tests-unit 2>&1 | tee /tmp/unit-test-output.txt
+
+      - name: Comment unit tests success
+        if: steps.unit-tests.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":heavy_check_mark: Unit tests passed. Running integration tests..."
+      - name: Comment unit tests failure
+        if: steps.unit-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":x: Unit tests failed. Running integration tests..."
+
+      - name: Extract unit test failure details
+        if: steps.unit-tests.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/unit-test-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            # Extract Go "--- FAIL:" blocks with indented context lines
+            BLOCKS=$(awk '
+              /^--- FAIL:/ { in_fail=1; out=out"\n"$0; next }
+              in_fail && /^[[:space:]]/ { out=out"\n"$0; next }
+              in_fail { in_fail=0 }
+              /^FAIL[[:space:]]/ { out=out"\n"$0 }
+              END { print out }
+            ' "$OUTPUT" 2>/dev/null)
+            # Fallback: grep for error indicators
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS=$(grep -E "^--- FAIL:|^FAIL[[:space:]]|Error:|panic:|cannot " "$OUTPUT" 2>/dev/null | head -40 || true)
+            fi
+            # Final fallback: safe message pointing to full logs (avoids posting raw output)
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'UNIT_FAILURES<<EOF_unit_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_unit_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment unit test failure details
+        if: steps.unit-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: |
+            <details><summary>:mag: Server unit test failures</summary>
+
+            ```
+            ${{ env.UNIT_FAILURES }}
+            ```
+
+            </details>
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Run integration tests
+        id: integration-tests
+        continue-on-error: true
+        if: ${{ inputs.run_integration_tests }}
+        working-directory: meshery-cloud
+        shell: bash
+        run: |
+          set -o pipefail
+          make ENVIRONMENT=staging server-tests-integration 2>&1 | tee /tmp/integration-test-output.txt
+
+      - name: Comment integration tests success
+        if: steps.integration-tests.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":heavy_check_mark: Golang integration tests passed."
+      - name: Comment integration tests failure
+        if: steps.integration-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":x: Golang integration tests failed."
+      - name: Comment integration tests skipped
+        if: steps.integration-tests.outcome == 'skipped'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":fast_forward: Integration tests skipped (not requested)."
+
+      - name: Extract integration test failure details
+        if: steps.integration-tests.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/integration-test-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            BLOCKS=$(awk '
+              /^--- FAIL:/ { in_fail=1; out=out"\n"$0; next }
+              in_fail && /^[[:space:]]/ { out=out"\n"$0; next }
+              in_fail { in_fail=0 }
+              /^FAIL[[:space:]]/ { out=out"\n"$0 }
+              END { print out }
+            ' "$OUTPUT" 2>/dev/null)
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS=$(grep -E "^--- FAIL:|^FAIL[[:space:]]|Error:|panic:|cannot " "$OUTPUT" 2>/dev/null | head -40 || true)
+            fi
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'INTEGRATION_FAILURES<<EOF_int_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_int_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment integration test failure details
+        if: steps.integration-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: |
+            <details><summary>:mag: Integration test failures</summary>
+
+            ```
+            ${{ env.INTEGRATION_FAILURES }}
+            ```
+
+            </details>
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-test-results
+          path: meshery-cloud/allure-results/
+          if-no-files-found: ignore
+          retention-days: 14
+      #------------------------------------------
+
+      #------------------------------------------
+      # Publish server test results (pass or fail) to qa.meshery.io. PR runs
+      # route under pr-reports/<N>/ so they stay out of the master dashboard.
+      # The sync is intentionally ungated on test outcome — failing runs must
+      # land so the dashboard reflects every CI run.
+      - name: Checkout QA
+        id: checkout-qa
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/checkout@v6
+        with:
+          repository: meshery-extensions/qa
+          path: qa
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Warn when server results are not published to QA
+        if: ${{ !cancelled() && steps.checkout-qa.outcome != 'success' }}
+        run: |
+          MESSAGE="QA publish skipped: failed to checkout meshery-extensions/qa, so server test results were not synced."
+          echo "::warning::$MESSAGE"
+          echo "- $MESSAGE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sync server test results to qa
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            BASE="qa/pr-reports/${{ inputs.pr_number }}"
+          else
+            BASE="qa"
+          fi
+          SERVER_DEST="$BASE/meshery-server-results"
+          rm -rf "$SERVER_DEST"
+          mkdir -p "$SERVER_DEST"
+          for dir in \
+            meshery-cloud/allure-results \
+            meshery-cloud/server/*/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." "$SERVER_DEST/" 2>/dev/null || true
+          done
+          echo "meshery-server-results: $(find "$SERVER_DEST" -type f | wc -l) file(s)"
+
+      - name: Commit & push server results to qa
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        continue-on-error: true
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "[Cloud] Sync server test results - ${GITHUB_SHA}"
+          commit_options: --signoff
+          repository: qa
+          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'meshery-server-results' }}
+          commit_user_name: meshery-ci
+          commit_user_email: ci@meshery.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Comment QA sync success
+        if: ${{ success() && !cancelled() }}
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":heavy_check_mark: Synced server test results to QA dashboard."
+      - name: Comment QA sync failure
+        if: ${{ failure() }}
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":x: Failed to sync server test results to QA dashboard."
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Comment final success
+        if: ${{ steps.unit-tests.outcome == 'success' && (steps.integration-tests.outcome == 'success' || steps.integration-tests.outcome == 'skipped') }}
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":white_check_mark: All Layer5 Cloud Server tests completed successfully."
+      - name: Comment final failure
+        if: ${{ steps.unit-tests.outcome == 'failure' || steps.integration-tests.outcome == 'failure' }}
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-tests
+          message: ":x: Layer5 Cloud Server tests completed with failures. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+
+      - name: Fail if any tests failed
+        if: ${{ steps.unit-tests.outcome == 'failure' || steps.integration-tests.outcome == 'failure' }}
+        run: |
+          echo "::error::Test failures detected"
+          [ "${{ steps.unit-tests.outcome }}" = "failure" ] && echo "  - Unit tests failed"
+          [ "${{ steps.integration-tests.outcome }}" = "failure" ] && echo "  - Integration tests failed"
+          exit 1
+      #------------------------------------------
+
+  ui-tests:
+    name: UI Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      PR_NUMBER: ${{ inputs.pr_number }}
+    steps:
+      - name: Checkout for composite action
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/actions/cloud-comment
+          sparse-checkout-cone-mode: false
+
+      - name: Comment starting
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: "Starting Cloud UI tests ([workflow run](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
+          append: false
+          recreate: true
+
+      #------------------------------------------
+      - name: Checkout Cloud code
+        uses: actions/checkout@v6
+        with:
+          repository: layer5io/meshery-cloud
+          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
+          fetch-depth: 1
+          path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Comment checkout success
+        if: success()
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":heavy_check_mark: Checked out meshery-cloud repo."
+      - name: Comment checkout failure
+        if: failure()
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":x: Failed to clone meshery-cloud repo."
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: "npm"
+          cache-dependency-path: meshery-cloud/ui/package-lock.json
+
+      - name: Comment Node setup success
+        if: steps.setup-node.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":heavy_check_mark: Setup Node.js. Installing dependencies..."
+      - name: Comment Node setup failure
+        if: steps.setup-node.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":x: Failed to setup Node.js."
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Install UI dependencies
+        id: install-deps
+        working-directory: meshery-cloud
+        run: make ui-setup
+
+      - name: Comment deps success
+        if: steps.install-deps.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":heavy_check_mark: Installed UI dependencies. Running UI tests..."
+      - name: Comment deps failure
+        if: steps.install-deps.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":x: Failed to install UI dependencies."
+      #------------------------------------------
+
+      #------------------------------------------
+      - name: Run UI tests
+        id: ui-tests
+        continue-on-error: true
+        working-directory: meshery-cloud
+        shell: bash
+        run: |
+          set -o pipefail
+          make ui-tests 2>&1 | tee /tmp/ui-test-output.txt
+
+      - name: Upload UI test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: meshery-cloud/ui/coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Comment UI tests success
+        if: steps.ui-tests.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":white_check_mark: All Cloud UI tests passed."
+      - name: Comment UI tests failure
+        if: steps.ui-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: ":x: Cloud UI tests failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+
+      - name: Extract UI test failure details
+        if: steps.ui-tests.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/ui-test-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            # Jest failures: FAIL file lines and ● bullet error descriptions
+            JEST=$(grep -E "^FAIL |^FAIL$|^ +● |^  ●|Tests:.*failed|Test Suites:.*failed|TypeError|ReferenceError" \
+              "$OUTPUT" 2>/dev/null | head -60 || true)
+            # TypeScript compiler errors (tsc --noEmit)
+            TSC=$(grep -E "\.tsx?:[0-9]+:[0-9]+ - error TS[0-9]+" \
+              "$OUTPUT" 2>/dev/null | head -20 || true)
+            BLOCKS=""
+            [ -n "$JEST" ] && BLOCKS="$JEST"
+            if [ -n "$TSC" ]; then
+              printf -v BLOCKS '%s\nTypeScript errors:\n%s' "$BLOCKS" "$TSC"
+            fi
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'UI_FAILURES<<EOF_ui_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_ui_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment UI test failure details
+        if: steps.ui-tests.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-ui-tests
+          message: |
+            <details><summary>:mag: UI test failures</summary>
+
+            ```
+            ${{ env.UI_FAILURES }}
+            ```
+
+            </details>
+
+      - name: Fail UI tests job
+        if: steps.ui-tests.outcome == 'failure'
+        run: exit 1
+      #------------------------------------------
+
+      #------------------------------------------
+      # Publish UI (Jest) results to qa.meshery.io. Runs on pass or fail.
+      # Until meshery-cloud wires an allure-jest reporter into the ui target,
+      # meshery-cloud/ui/allure-results will be empty and this step no-ops.
+      - name: Checkout QA
+        id: checkout-qa
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/checkout@v6
+        with:
+          repository: meshery-extensions/qa
+          path: qa
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Warn when UI results are not published to QA
+        if: ${{ !cancelled() && steps.checkout-qa.outcome != 'success' }}
+        run: |
+          MESSAGE="QA publish skipped: failed to checkout meshery-extensions/qa, so UI test results were not synced."
+          echo "::warning::$MESSAGE"
+          echo "- $MESSAGE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sync UI test results to qa
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            BASE="qa/pr-reports/${{ inputs.pr_number }}"
+          else
+            BASE="qa"
+          fi
+          UI_DEST="$BASE/remote-provider-results"
+          mkdir -p "$UI_DEST"
+          for dir in meshery-cloud/ui/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." "$UI_DEST/" 2>/dev/null || true
+          done
+          echo "remote-provider-results (UI): $(find "$UI_DEST" -type f | wc -l) file(s)"
+
+      - name: Commit & push UI results to qa
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        continue-on-error: true
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "[Cloud] Sync UI test results - ${GITHUB_SHA}"
+          commit_options: --signoff
+          repository: qa
+          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'remote-provider-results' }}
+          commit_user_name: meshery-ci
+          commit_user_email: ci@meshery.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      #------------------------------------------
+
+  e2e-tests:
+    name: Playwright e2e
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      PR_NUMBER: ${{ inputs.pr_number }}
+    steps:
+      - name: Checkout for composite action
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/actions/cloud-comment
+          sparse-checkout-cone-mode: false
+
+      - name: Comment starting
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-e2e-tests
+          message: "Starting Cloud Playwright e2e ([workflow run](https://github.com/meshery-extensions/meshery-extensions-packages/actions/runs/${{ github.run_id }}))..."
+          append: false
+          recreate: true
+
+      - name: Checkout Cloud code
+        uses: actions/checkout@v6
+        with:
+          repository: layer5io/meshery-cloud
+          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
+          fetch-depth: 1
+          path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: 'npm'
+          cache-dependency-path: meshery-cloud/ui/package-lock.json
+
+      - name: Install Cloud UI dependencies
+        working-directory: meshery-cloud
+        run: make ui-setup
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('meshery-cloud/ui/package-lock.json') }}
+
+      - name: Install Playwright browsers
+        working-directory: meshery-cloud/ui
+        run: npx playwright install --with-deps
+
+      # ALLURE_RESULTS_DIR routes allure-playwright (when wired in
+      # meshery-cloud) to a path the sync-to-qa step collects. Until that
+      # reporter is added, the directory stays empty and sync no-ops.
+      # Step timeout is set below the job timeout so a hung test fails
+      # with room left for the QA sync + gating step to run. Current
+      # observed e2e runtime is ~22 min; 25 min gives a small buffer.
+      - name: Run Cloud UI e2e tests
+        id: e2e
+        timeout-minutes: 35
+        continue-on-error: true
+        working-directory: meshery-cloud/ui
+        env:
+          ALLURE_RESULTS_DIR: ${{ github.workspace }}/meshery-cloud/ui/allure-results
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run e2e 2>&1 | tee /tmp/e2e-output.txt
+
+      - name: Comment e2e success
+        if: steps.e2e.outcome == 'success'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-e2e-tests
+          message: ":white_check_mark: Cloud Playwright e2e tests passed."
+      - name: Comment e2e failure
+        if: steps.e2e.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-e2e-tests
+          message: ":x: Cloud Playwright e2e tests failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+
+      - name: Extract e2e failure details
+        if: steps.e2e.outcome == 'failure'
+        run: |
+          OUTPUT="/tmp/e2e-output.txt"
+          if [ ! -f "$OUTPUT" ]; then
+            BLOCKS="(no output file found)"
+          else
+            # Playwright failure patterns: ✗/✘/× symbols, FAILED lines, errors
+            BLOCKS=$(grep -E "✗|✘|×| FAILED |Error:|expect\\(received\\)" \
+              "$OUTPUT" 2>/dev/null | head -50 || true)
+            if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
+              BLOCKS="(no specific failure patterns matched — see full logs for details)"
+            fi
+            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+          fi
+          {
+            echo 'E2E_FAILURES<<EOF_e2e_9a8b7c'
+            echo "$BLOCKS"
+            echo 'EOF_e2e_9a8b7c'
+          } >> "$GITHUB_ENV"
+      - name: Comment e2e failure details
+        if: steps.e2e.outcome == 'failure'
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-e2e-tests
+          message: |
+            <details><summary>:mag: Playwright e2e failures</summary>
+
+            ```
+            ${{ env.E2E_FAILURES }}
+            ```
+
+            </details>
+
+      - name: Upload e2e test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: meshery-cloud/ui/allure-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      #------------------------------------------
+      # Publish Playwright e2e results to qa.meshery.io. Runs on pass or
+      # fail. PR runs route under pr-reports/<N>/.
+      - name: Checkout QA
+        id: checkout-qa
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/checkout@v6
+        with:
+          repository: meshery-extensions/qa
+          path: qa
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Warn when e2e results are not published to QA
+        if: ${{ !cancelled() && steps.checkout-qa.outcome != 'success' }}
+        run: |
+          MESSAGE="QA publish skipped: failed to checkout meshery-extensions/qa, so e2e test results were not synced."
+          echo "::warning::$MESSAGE"
+          echo "- $MESSAGE" >> "$GITHUB_STEP_SUMMARY"
+
+      # Clear the destination before copying so removed/renamed result
+      # files don't linger as stale entries on the QA dashboard. Safe in
+      # this job because no other parallel job writes to the same subtree
+      # within this run (the ui-tests Jest sync is currently a no-op).
+      - name: Sync e2e results to qa
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            BASE="qa/pr-reports/${{ inputs.pr_number }}"
+          else
+            BASE="qa"
+          fi
+          E2E_DEST="$BASE/remote-provider-results"
+          rm -rf "$E2E_DEST"
+          mkdir -p "$E2E_DEST"
+          for dir in meshery-cloud/ui/allure-results; do
+            [ -d "$dir" ] || continue
+            cp -R "$dir/." "$E2E_DEST/" 2>/dev/null || true
+          done
+          echo "remote-provider-results (e2e): $(find "$E2E_DEST" -type f | wc -l) file(s)"
+
+      - name: Commit & push e2e results to qa
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        continue-on-error: true
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "[Cloud] Sync e2e results - ${GITHUB_SHA}"
+          commit_options: --signoff
+          repository: qa
+          file_pattern: ${{ inputs.pr_number != '' && format('pr-reports/{0}', inputs.pr_number) || 'remote-provider-results' }}
+          commit_user_name: meshery-ci
+          commit_user_email: ci@meshery.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      # Gate after the sync so failing e2e results still publish to QA
+      # while the job correctly surfaces as failed in PR checks.
+      - name: Fail job if e2e failed
+        if: steps.e2e.outcome == 'failure'
+        run: |
+          echo "::error::Playwright e2e tests failed"
+          exit 1
+      #------------------------------------------

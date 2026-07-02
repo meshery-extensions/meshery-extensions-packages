@@ -8,11 +8,38 @@ on:
       pr_number:
         required: true
         type: string
+      node_version:
+        description: "Node.js version for UI build/tests (overrides vars.NODE_VERSION for this run)"
+        required: false
+        type: string
 
 jobs:
-  pass-secrets-to-workflow:
+  build:
     uses: ./.github/workflows/meshery-cloud-build-reusable.yml
-    secrets: inherit
+    secrets:
+      PROVIDER_TOKEN: ${{secrets.PROVIDER_TOKEN}}
+      LAYER5_CLOUD_TESTING_BOT_EMAIL: ${{secrets.LAYER5_CLOUD_TESTING_BOT_EMAIL}}
+      LAYER5_CLOUD_TESTING_BOT_PASSWORD: ${{secrets.LAYER5_CLOUD_TESTING_BOT_PASSWORD}}
+      GH_ACCESS_TOKEN: ${{secrets.GH_ACCESS_TOKEN}}
+      DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+      DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      MAIL_USERNAME: ${{secrets.MAIL_USERNAME}}
+      MAIL_PASSWORD: ${{secrets.MAIL_PASSWORD}}
+      OCI_BASTION_HOST: ${{ secrets.OCI_BASTION_HOST }}
+      OCI_BASTION_USERNAME: ${{ secrets.OCI_BASTION_USERNAME }}
+      OCI_BASTION_KEY: ${{ secrets.OCI_BASTION_KEY }}
+      GLOBAL_TOKEN: ${{ secrets.GLOBAL_TOKEN }}
+
     with:
       pr_commit_sha: ${{inputs.pr_commit_sha}}
       pr_number: ${{inputs.pr_number}}
+      node_version: ${{inputs.node_version || vars.NODE_VERSION || '22.x'}}
+
+  test:
+    uses: ./.github/workflows/meshery-cloud-test-reusable.yml
+    secrets:
+      GH_ACCESS_TOKEN: ${{secrets.GH_ACCESS_TOKEN}}
+    with:
+      pr_commit_sha: ${{inputs.pr_commit_sha}}
+      pr_number: ${{inputs.pr_number}}
+      node_version: ${{inputs.node_version || vars.NODE_VERSION || '22.x'}}

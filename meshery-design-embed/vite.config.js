@@ -14,10 +14,15 @@ export default defineConfig({
       fileName: "meshery-design-embed",
     },
     rollupOptions: {
-      external: [...Object.keys(packageJson.peerDependencies)],
+      external: [...Object.keys(packageJson.peerDependencies),
+      'react/jsx-runtime',
+      'react-dom/client',
+      ],
       output: {
         globals: {
           react: "React",
+          'react-dom': 'ReactDOM',
+          'react/jsx-runtime': 'ReactJSXRuntime',
         },
       },
     },

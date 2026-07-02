@@ -3,6 +3,11 @@ import MesheryDesignEmbed from "../lib/main";
 
 function App() {
   const [count, setCount] = useState(0);
+
+  
+
+  const embeddedId = "embedded-design-a3d3f26e-4366-44e6-b211-1ba4e1a3e644";
+
   return (
     <>
       <h3> Test Rerenders </h3>
@@ -10,14 +15,14 @@ function App() {
       <p>{count}</p>
 
       <h3>Meshery Embed</h3>
-      <div>
-        <MesheryDesignEmbed
+      <MesheryDesignEmbed
           embedScriptSrc="embedded-design-embed1.js"
-          embedId="embedded-design-a3d3f26e-4366-44e6-b211-1ba4e1a3e644"
-        />
-      </div>
+          embedId={embeddedId}
+          showLogo={true}
+      />
     </>
   );
 }
+
 
 export default App;

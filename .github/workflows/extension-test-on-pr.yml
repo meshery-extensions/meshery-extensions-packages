@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       pr_commit_sha:
-        required: true
+        required: false
         type: string
       pr_number:
-        required: true
+        required: false
         type: string
 
 jobs:
@@ -16,3 +16,4 @@ jobs:
     with:
       checkout_ref: ${{inputs.pr_commit_sha}}
       pr_number: ${{inputs.pr_number}}
+      head_sha: ${{inputs.pr_commit_sha}}

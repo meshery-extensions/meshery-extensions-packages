@@ -8,7 +8,7 @@ on:
         default: "staging"
         type: string
       release-version:
-        description: "e.g. v0.6.26"
+        description: "e.g. v0.8.312"
         required: true
         default: "latest"
         type: string
@@ -17,21 +17,23 @@ on:
         default: "master"
         type: string
     secrets:
+      GLOBAL_TOKEN:
+        required: true
       GH_ACCESS_TOKEN: 
         required: true
       DOCKER_USERNAME: 
         required: true
       DOCKER_PASSWORD: 
         required: true
-      MESHERY_CLOUD_AWS_PROD_USERNAME:
+      OCI_BASTION_HOST:
         required: true
-      MESHERY_CLOUD_AWS_STG_HOST:
+      OCI_BASTION_USERNAME:
         required: true
-      MESHERY_CLOUD_AWS_PROD_HOST:
+      OCI_BASTION_KEY:
         required: true
-      MESHERY_CLOUD_AWS_PROD_KEY:
+      MAIL_USERNAME:
         required: true
-      GLOBAL_TOKEN:
+      MAIL_PASSWORD:
         required: true
 
   workflow_dispatch:
@@ -39,11 +41,11 @@ on:
       release-environment: 
         description: "Staging or Production (lowercase)"
         required: true
-        default: "staging"
+        default: "production"
       release-version: 
-        description: "e.g. v0.6.26"
+        description: "e.g. v0.8.312 or 'latest'"
         required: true
-        default: "latest"
+        default: "v0.8.3"
       branch:
         description: "Branch to deploy in the staging environment. If not provided, master branch of the repository will be used."
         default: "master"
@@ -53,50 +55,22 @@ env:
   GIT_VERSION: ${{inputs.release-version}}
 
 jobs:
-  update-doc-release-version:
-    name: API Docs
-    if: inputs.release-environment == 'production'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Meshery Cloud code
-        uses: actions/checkout@v4
-        with:
-          repository: layer5io/meshery-cloud
-          fetch-depth: 1
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
-      - name: API Docs - Install Redocly
-        uses: actions/setup-node@v4
-      - run: npm i -g @redocly/cli@latest
-      - name: API Docs - Update schema.yml
-        uses: fjogeleit/yaml-update-action@v0.15.0
-        with:
-          repository: l5io/meshery-cloud
-          branch: master
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
-          valueFile: 'models/openapi-schema/schema.yml'
-          commitChange: true
-          propertyPath: 'info.version'
-          value: ${{inputs.release-version}}
-          message: Updated meshery-cloud version to ${{inputs.release-version}}
-          commitUserName: l5io
-          commitUserEmail: l5io@layer5.io
-      
   lint-fix:
     name: Lint UI and Backend
     if: inputs.release-environment == 'staging'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Meshery Cloud code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: meshery-cloud
           repository: layer5io/meshery-cloud
           fetch-depth: 1
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           ref: ${{ inputs.branch }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21.0'
+          go-version: "1.26.4"
       - name: Install prettier and eslint
         run: |
            npm i -g prettier;
@@ -107,7 +81,7 @@ jobs:
           make ui-lint-fix
           make cloud-lint-fix
       - name: Commit Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_user_name: l5io
           commit_user_email: l5io@layer5.io
@@ -117,120 +91,130 @@ jobs:
           repository: meshery-cloud
 
   staging:
-    needs: update-doc-release-version
-    if: always() && inputs.release-environment == 'staging' 
+    if: inputs.release-environment == 'staging'
     name: Staging - Docker build and push
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-    - name: Checkout Meshery Cloud code
-      uses: actions/checkout@v4
-      with:
-        path: meshery-cloud
-        repository: layer5io/meshery-cloud
-        fetch-depth: 1
-        token: ${{ secrets.GH_ACCESS_TOKEN }}
-        ref: ${{ inputs.branch }}
-    - name: Build Docs
-      working-directory: meshery-cloud
-      run:  |
-        npm i -g @redocly/cli@latest
-        make docs-build
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
-    - name: Setup UI Dependencies
-      working-directory: meshery-cloud
-      run: make ui-setup
-    - name: Build RTK Query Codegen
-      working-directory: meshery-cloud
-      run: make ui-api-codegen
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Docker Meta
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
+      - name: Checkout 🛎️ repo
+        uses: actions/checkout@master
+        with:
+          path: meshery-cloud
+          repository: layer5io/meshery-cloud
+          fetch-depth: 1
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          ref: ${{ inputs.branch }}
+      - name: Identify Release Values
+        working-directory: meshery-cloud
+        run: |
+          set -euo pipefail
+
+          latest_version="$(git ls-remote --refs --sort='v:refname' --tags origin 'v*' | tail -1 | cut -f2 | sed 's#refs/tags/##')"
+          if [[ -z "${latest_version}" ]]; then
+            echo "Failed to determine the latest release tag from origin." >&2
+            exit 1
+          fi
+
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            release_channel="stable"
+          else
+            release_channel="edge"
+          fi
+
+          git_version="${latest_version}"
+          git_stripped_version="${git_version#v}"
+
+          {
+            echo "RELEASE_CHANNEL=${release_channel}"
+            echo "GIT_LATEST=${latest_version}"
+            echo "GIT_VERSION=${git_version}"
+            echo "GIT_STRIPPED_VERSION=${git_stripped_version}"
+            echo "GIT_COMMITSHA=$(git rev-parse HEAD)"
+          } >> "$GITHUB_ENV"
+
+          echo "Release channel determined to be ${release_channel}"
+          echo "Resolved release values: latest=${latest_version}, version=${git_version}, stripped=${git_stripped_version}"
+        shell: bash
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Docker Meta
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
           images: layer5/meshery-cloud
           flavor: |
             latest=true
           tags: |
             type=raw,value=${{inputs.release-environment}}-{{sha}}
+            type=semver,pattern={{version}},value=${{env.GIT_STRIPPED_VERSION}}
             type=raw,value=${{inputs.release-environment}}-{{tag}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=raw,value=${{inputs.release-environment}}-latest
-            type=raw,value=${{inputs.release-environment}}-${{inputs.release-version}}
-            type=raw,value=${{inputs.release-environment}}-${{env.GIT_VERSION}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}        
-    - name: Login to DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: Build and Push
-      uses: docker/build-push-action@v5
-      with:
-        context: meshery-cloud
-        push: true
-        build-args: |
-          ENVIRONMENT=stg
-          GIT_VERSION=${{inputs.release-environment}}-${{inputs.release-version}}
-          RELEASE_CHANNEL=${{inputs.release-environment}}
-          TOKEN=${{ secrets.GLOBAL_TOKEN }}
-        tags: ${{ steps.meta.outputs.tags }}
-        platforms: linux/amd64
-    - name: Deploy staging
-      if: success()
-      uses: appleboy/ssh-action@master
-      env:
-          GIT_VERSION: ${{inputs.release-version}}
-          GIT_COMMITSHA: ${{ github.sha }}
-      with:
-        host: ${{ secrets.MESHERY_CLOUD_AWS_STG_HOST }}
-        username: ${{ secrets.MESHERY_CLOUD_AWS_PROD_USERNAME }}
-        key: ${{ secrets.MESHERY_CLOUD_AWS_PROD_KEY }}
-        port: 22
-        envs: GIT_VERSION,GIT_COMMITSHA
-        script: |
-          sudo su
-          cd meshery-cloud
-          sudo su - -c "git pull https://l5io:${{ secrets.GH_ACCESS_TOKEN }}@github.com/layer5io/meshery-cloud"
-          docker pull layer5/meshery-cloud:staging-$GIT_VERSION
-          sudo su - -c "whoami"
-          make stg-deploy GIT_VERSION=$GIT_VERSION
-          docker system prune -f
-          docker image prune -a -f
+            type=raw,value=${{inputs.release-environment}}-${{env.GIT_VERSION}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and Push
+        uses: docker/build-push-action@v7
+        with:
+          context: meshery-cloud
+          push: true
+          build-args: |
+            ENVIRONMENT="stg"
+            GIT_VERSION=${{inputs.release-environment}}-${{inputs.release-version}}
+            GIT_COMMITSHA=${{ env.GIT_COMMITSHA }}
+            RELEASE_CHANNEL=${{inputs.release-environment}}
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+      - name: Deploy staging on OCI OKE
+        uses: appleboy/ssh-action@master
+        env:
+            GIT_VERSION: ${{inputs.release-version}}
+        with:
+          host: ${{ secrets.OCI_BASTION_HOST }}
+          username: ${{ secrets.OCI_BASTION_USERNAME }}
+          key: ${{ secrets.OCI_BASTION_KEY }}
+          port: 22
+          envs: GIT_VERSION
+          script: |
+            kubectl config use-context staging
+            helm upgrade --install -f ~/deploy/meshery-cloud/install/environment/staging/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n staging --set=image.tag=$GIT_VERSION --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl
   prod:
-    needs: update-doc-release-version
-    if: always() && inputs.release-environment == 'production'
+    if: inputs.release-environment == 'production'
     name: Production - Docker build and push
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout Meshery Cloud code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: layer5io/meshery-cloud
         path: meshery-cloud
         fetch-depth: 1
         token: ${{ secrets.GH_ACCESS_TOKEN }}
-    - name: Build Docs
+        # Allow deploying from a configurable branch/tag (defaults to master) instead of the release version tag,
+        # which may not exist yet when this workflow runs.
+        ref: ${{ inputs.branch }}
+
+    - name: Capture Cloud commit SHA
       working-directory: meshery-cloud
-      run:  |
-        npm i -g @redocly/cli@latest
-        make docs-build
+      run: echo "GIT_COMMITSHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
     - name: Setup UI Dependencies
       working-directory: meshery-cloud
       run: make ui-setup
-    - name: Build RTK Query Codegen
-      working-directory: meshery-cloud
-      run: make ui-api-codegen
+    # - name: Build RTK Query Codegen
+    #   working-directory: meshery-cloud
+    #   run: make ui-api-codegen
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
     - name: Docker Meta
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v6
       with:
           images: layer5/meshery-cloud
           flavor: |
@@ -242,42 +226,64 @@ jobs:
             type=raw,value=${{inputs.release-environment}}-${{inputs.release-version}}
             type=raw,value=${{inputs.release-environment}}-${{env.GIT_VERSION}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}        
     - name: Login to DockerHub
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build and Push
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v7
       with:
         context: meshery-cloud
         push: true
         build-args: |
           ENVIRONMENT=prod
           GIT_VERSION=${{inputs.release-environment}}-${{inputs.release-version}}
+          GIT_COMMITSHA=${{ env.GIT_COMMITSHA }}
           RELEASE_CHANNEL=${{inputs.release-environment}}
           TOKEN=${{ secrets.GLOBAL_TOKEN }}
         tags: ${{ steps.meta.outputs.tags }}
         platforms: linux/amd64
-    - name: Deploy production
+    - name: Deploy production on bastion host
       uses: appleboy/ssh-action@master
       env:
-          GIT_VERSION: ${{inputs.release-version}}
-          GIT_COMMITSHA: ${{ github.sha }}
+          GIT_VERSION: ${{inputs.release-environment}}-${{inputs.release-version}}
+          GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       with:
-        host: ${{ secrets.MESHERY_CLOUD_AWS_PROD_HOST }}
-        username: ${{ secrets.MESHERY_CLOUD_AWS_PROD_USERNAME }}
-        key: ${{ secrets.MESHERY_CLOUD_AWS_PROD_KEY }}
+        host: ${{ secrets.OCI_BASTION_HOST }}
+        username: ${{ secrets.OCI_BASTION_USERNAME }}
+        key: ${{ secrets.OCI_BASTION_KEY }}
         port: 22
-        envs: GIT_VERSION,GIT_COMMITSHA
+        envs: 
+            GIT_VERSION, GH_ACCESS_TOKEN
+        # It is important to use bash, specifically so that git works
+        # and can use the GH_ACCESS_TOKEN env var properly
         script: |
-          sudo su
-          sudo su - -c "whoami"
-          echo $GIT_VERSION
-          cd meshery-cloud
-          sudo su - -c "git pull https://l5io:${{ secrets.GH_ACCESS_TOKEN }}@github.com/layer5io/meshery-cloud"
-          sudo ./install/scripts/git-pull.sh
-          docker pull layer5/meshery-cloud:production-$GIT_VERSION
-          make prod-deploy GIT_VERSION=$GIT_VERSION
-          docker system prune -f
-          docker image prune -a -f
-          
+          bash
+          set -e
+          helm repo update layer5
+          cd deploy/meshery-cloud && git pull https://l5io:$GH_ACCESS_TOKEN@github.com/layer5io/meshery-cloud.git master
+          cd ../..
+          kubectl config use-context prod
+          helm upgrade --install -f ~/deploy/meshery-cloud/install/environment/production/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n cloud --set=image.tag=$GIT_VERSION --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl
+
+    - name: Send Email on Cloud Release Failure
+      if: ${{ failure() }}
+      uses: dawidd6/action-send-mail@v6
+      env:
+        msg: ${{ env.reason != '' && env.reason || ' Workflow Build Failure' }}
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: "[GitHub Actions] Layer5 Cloud Release Failure: ${{inputs.release-environment}} ${{inputs.release-version}}"
+        from: |
+          "Layer5 Cloud" <no-reply@layer5.io>
+        to: |
+          "Layer5 Support" <support@layer5.io>
+        html_body: |
+          <b>REPO:</b> ${{ github.repository }}<br />  
+          <b>WORKFLOW:</b> ${{ github.workflow }}<br />
+          <b>JOB:</b> ${{ github.job }}<br />
+          <b>REASON:</b> ${{ env.msg }}<br />
+          <b>DETAILS:</b> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}${{ job.status }}">${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}</a><br />
