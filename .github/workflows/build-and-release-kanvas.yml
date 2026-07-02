@@ -17,6 +17,8 @@ jobs:
   release-kanvas:
     name: Build and Release Kanvas
     runs-on: "ubuntu-latest"
+    permissions:
+      contents: write
     outputs:
       revision: ${{ steps.fetch-versions.outputs.REVISION }}
     steps:
@@ -77,23 +79,90 @@ jobs:
           cache: false
       
       - name: Verify go.mod compatibility
+        id: verify-gomod
+        working-directory: ./meshery-extensions
+        run: make graphql-sync-err
+        continue-on-error: true
+
+      - name: Sync go.mod with Meshery, if diverged
+        if: ${{ steps.verify-gomod.outcome == 'failure' }}
+        working-directory: ./meshery-extensions
+        run: make graphql-sync
+
+      - name: Commit synced go.mod
+        id: commit-gomod
+        if: ${{ steps.verify-gomod.outcome == 'failure' }}
+        continue-on-error: true
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          repository: meshery-extensions
+          file_pattern: graphql/go.mod graphql/go.sum
+          commit_user_name: l5io
+          commit_user_email: ci@layer5.io
+          commit_author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          commit_options: '--signoff'
+          commit_message: 'chore: sync go.mod with Meshery ${{ env.MESHERY_VERSION }}'
+
+      - name: Warn if synced go.mod could not be pushed
+        if: ${{ steps.verify-gomod.outcome == 'failure' && steps.commit-gomod.outcome == 'failure' }}
+        run: echo "::warning::Could not push synced go.mod back to layer5labs/meshery-extensions@${{ inputs.branch }} (branch protection or network?). Continuing this build with the local fix, but the drift will resurface on the next run until this is pushed manually."
+
+      - name: Re-verify go.mod compatibility after sync
+        if: ${{ steps.verify-gomod.outcome == 'failure' }}
         working-directory: ./meshery-extensions
         run: |
-          echo "reason='go.mod for Meshery ${{env.MESHERY_VERSION }} and extension ${{ env.EXTENSION_VERSION }} has diverged'" >> $GITHUB_ENV;
-          make graphql-sync-err
-          if [ $? -ne 0 ]; then
-            exit 1;
-          fi
-          # reset the reason otherwise
-          echo "reason=" >> $GITHUB_ENV;
-          
+          make graphql-sync-err || {
+            message="go.mod for Meshery ${{ env.MESHERY_VERSION }} and extension ${{ env.EXTENSION_VERSION }} has diverged"
+            echo "reason=$message" >> $GITHUB_ENV
+            echo "$message"
+            exit 1
+          }
+
       - name: Setup Node 18
         uses: actions/setup-node@v4
         with:
           node-version: "18"
 
       - name: Verify extension compatibility with meshery ui
+        id: verify-compat
         if: ${{ !failure() }}
+        working-directory: "meshery-extensions"
+        run: make kanvas-validate-mesheryui-compatibility
+        continue-on-error: true
+
+      - name: Sync UI dependencies with Meshery, if incompatible
+        if: ${{ steps.verify-compat.outcome == 'failure' }}
+        working-directory: "meshery-extensions"
+        run: make sync-ui-deps
+
+      - name: Warn if Meshery UI's remote-component.config.js also needed patching
+        if: ${{ steps.verify-compat.outcome == 'failure' }}
+        working-directory: "meshery"
+        run: |
+          if ! git diff --quiet -- ui/remote-component.config.js; then
+            echo "::warning::sync-ui-deps patched meshery/ui/remote-component.config.js to expose a package the extension externalizes. This change is local to this run only (we don't have push rights on meshery/meshery) -- a human needs to open a PR there with the same fix, or it will keep recurring."
+          fi
+
+      - name: Commit synced UI dependencies
+        id: commit-ui-deps
+        if: ${{ steps.verify-compat.outcome == 'failure' }}
+        continue-on-error: true
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          repository: meshery-extensions
+          file_pattern: ui/package.json ui/package-lock.json
+          commit_user_name: l5io
+          commit_user_email: ci@layer5.io
+          commit_author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          commit_options: '--signoff'
+          commit_message: 'chore: sync UI dependencies with Meshery ${{ env.MESHERY_VERSION }}'
+
+      - name: Warn if synced UI dependencies could not be pushed
+        if: ${{ steps.verify-compat.outcome == 'failure' && steps.commit-ui-deps.outcome == 'failure' }}
+        run: echo "::warning::Could not push synced UI dependencies back to layer5labs/meshery-extensions@${{ inputs.branch }} (branch protection or network?). Continuing this build with the local fix, but the drift will resurface on the next run until this is pushed manually."
+
+      - name: Re-verify extension compatibility with meshery ui after sync
+        if: ${{ steps.verify-compat.outcome == 'failure' }}
         working-directory: "meshery-extensions"
         run: |
           make kanvas-validate-mesheryui-compatibility || {
