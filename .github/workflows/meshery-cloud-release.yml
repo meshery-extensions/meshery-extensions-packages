@@ -202,12 +202,21 @@ jobs:
       working-directory: meshery-cloud
       run: echo "GIT_COMMITSHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
-    - name: Setup UI Dependencies
-      working-directory: meshery-cloud
-      run: make ui-setup
-    # - name: Build RTK Query Codegen
-    #   working-directory: meshery-cloud
-    #   run: make ui-api-codegen
+    # Reclaim disk on the hosted runner before the multi-stage image build.
+    # The prod image bundles a Go server, a Node/Next.js UI build, and academy
+    # content; without this the "Build and Push" step intermittently fails with
+    # "No space left on device" on the ~21 GB ubuntu-24.04 root filesystem.
+    #
+    # Note: the UI is compiled inside the Dockerfile's `node` stage (which runs
+    # its own `make ui-setup && make ui-build`), and `.dockerignore` excludes
+    # node_modules from the build context - so a host-side `make ui-setup` step
+    # here built nothing that reached the image and only consumed runner disk.
+    - name: Free up runner disk space
+      run: |
+        echo "Disk space before cleanup:"; df -h /
+        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+          /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/local/graalvm 2>/dev/null || true
+        echo "Disk space after cleanup:"; df -h /
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v4
     - name: Set up Docker Buildx
