@@ -208,6 +208,21 @@ jobs:
     # - name: Build RTK Query Codegen
     #   working-directory: meshery-cloud
     #   run: make ui-api-codegen
+    - name: TypeScript type check
+      working-directory: meshery-cloud
+      run: |
+        # Fail fast on TypeScript errors before the expensive Docker build.
+        # The ui-setup step above has already installed node_modules.
+        # meshery-cloud keeps its frontend in ui/; fall back to root if needed.
+        if [ -f "ui/tsconfig.json" ]; then
+          echo "Running TypeScript check in ui/"
+          ( cd ui && npx tsc --noEmit ) && echo "TypeScript type check passed." || { echo "TypeScript type check failed. Fix the type errors above before re-running this workflow."; exit 1; }
+        elif [ -f "tsconfig.json" ]; then
+          echo "Running TypeScript check in ./"
+          npx tsc --noEmit && echo "TypeScript type check passed." || { echo "TypeScript type check failed. Fix the type errors above before re-running this workflow."; exit 1; }
+        else
+          echo "No tsconfig.json found; skipping TypeScript preflight check"
+        fi
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v4
     - name: Set up Docker Buildx
