@@ -594,7 +594,7 @@ jobs:
   e2e-tests:
     name: Playwright e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
