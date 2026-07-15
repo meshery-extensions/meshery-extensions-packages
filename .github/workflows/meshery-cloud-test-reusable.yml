@@ -284,16 +284,20 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          repository: meshery-extensions/qa
+          repository: meshery/qa
           path: qa
           token: ${{ secrets.GH_ACCESS_TOKEN }}
+          fetch-depth: 1
+          sparse-checkout: |
+            pr-reports/${{ inputs.pr_number }}"
+          sparse-checkout-cone-mode: false
 
       - name: Warn when server results are not published to QA
         if: ${{ !cancelled() && steps.checkout-qa.outcome != 'success' }}
         run: |
-          MESSAGE="QA publish skipped: failed to checkout meshery-extensions/qa, so server test results were not synced."
+          MESSAGE="QA publish skipped: failed to checkout meshery/qa, so server test results were not synced."
           echo "::warning::$MESSAGE"
           echo "- $MESSAGE" >> "$GITHUB_STEP_SUMMARY"
 
@@ -594,7 +598,7 @@ jobs:
   e2e-tests:
     name: Playwright e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}

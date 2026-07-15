@@ -162,7 +162,7 @@ jobs:
       # Moved up: checkout has no dependency on Kind/Docker and can
       # run while those slower steps proceed.
       - name: Checkout Meshery-extensions code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: layer5labs/meshery-extensions
           path: meshery-extensions
@@ -221,7 +221,7 @@ jobs:
             docker.io/meshery/meshery:edge-latest
 
       - name: Download Meshery-extension-ui artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: meshery-extension-ui
           path: provider
@@ -292,7 +292,7 @@ jobs:
 
       - name: Upload shard artifacts
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-artifacts-shard-${{ matrix.shard }}
           path: shard-artifacts/
@@ -306,7 +306,7 @@ jobs:
 
       - name: Upload shard outcome artifact
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: shard-outcome-${{ matrix.shard }}
           path: shard-outcome/
@@ -323,13 +323,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Download Playwright shard artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: playwright-artifacts-shard-*
           path: shard-artifacts
 
       - name: Download shard outcome artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: shard-outcome-*
           path: shard-artifacts
@@ -427,7 +427,7 @@ jobs:
 
       - name: Checkout QA
         if: ${{ !cancelled() }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: meshery-extensions/qa
           path: qa
@@ -471,7 +471,7 @@ jobs:
 
       - name: Commit & push results to qa
         if: ${{ !cancelled() }}
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "[Kanvas] Sync E2E Test Results - ${GITHUB_SHA}"
           commit_options: --signoff

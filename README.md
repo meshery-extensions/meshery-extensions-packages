@@ -10,7 +10,7 @@
         <h5 align="center">
             <a href="https://meshery.io#getting-started">Installation</a> |
             <a href="https://docs.meshery.io">Documentation</a> |
-            <a href="https://meshery.io/community#discussion-forums">Forum</a> |
+            <a href="https://discuss.meshery.io">Forum</a> |
             <a href="https://play.meshery.io">Playground</a> |
             <a href="https://meshery.io/catalog">Catalog</a>
         </h5>
@@ -120,7 +120,7 @@ Meshery Design Embedding (docs](https://meshery.io/extensions)) enables you to e
                     recordings</a><br />
             <p>✔️ <b>Access</b> resources by completing a <a href="https://meshery.io/newcomers"> community member form
                 </a><br />
-            ✔️ <b>Discuss</b> in a Meshery <a href="https://meshery.io/community#discussion-forums">Community forum</a><br />
+            ✔️ <b>Discuss</b> in a Meshery <a href="https://discuss.meshery.io">Community forum</a><br />
             ✔️ Not sure where to start? <b>Grab</b> an open issue with the <a
                     href="https://github.com/issues?q=is%3Aopen+is%3Aissue+archived%3Afalse+(org%3Ameshery+OR+org%3Aservice-mesh-performance+OR+org%3Aservice-mesh-patterns+OR+org%3Ameshery-extensions)+label%3A%22help+wanted%22">help-wanted
                     label</a><br />
