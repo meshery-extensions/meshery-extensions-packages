@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout meshery/meshery
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           path: "meshery"
@@ -37,7 +37,7 @@ jobs:
           sparse-checkout-cone-mode: false
 
       # - name: Checkout kanvas
-      #   uses: actions/checkout@v6
+      #   uses: actions/checkout@v7
       #   with:
       #     fetch-depth: 1
       #     sparse-checkout: |
@@ -46,7 +46,7 @@ jobs:
       #     sparse-checkout-cone-mode: false
 
       - name: Fetch version scripts from meshery-extensions.
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           repository: layer5labs/meshery-extensions

@@ -57,7 +57,7 @@ jobs:
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Checkout for composite action
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -74,7 +74,7 @@ jobs:
 
       #------------------------------------------
       - name: Checkout Cloud code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: layer5io/meshery-cloud
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
@@ -381,7 +381,7 @@ jobs:
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Checkout for composite action
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -398,7 +398,7 @@ jobs:
 
       #------------------------------------------
       - name: Checkout Cloud code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: layer5io/meshery-cloud
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
@@ -550,7 +550,7 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: meshery-extensions/qa
           path: qa
@@ -604,7 +604,7 @@ jobs:
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Checkout for composite action
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -620,7 +620,7 @@ jobs:
           recreate: true
 
       - name: Checkout Cloud code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: layer5io/meshery-cloud
           ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
@@ -730,7 +730,7 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: meshery-extensions/qa
           path: qa

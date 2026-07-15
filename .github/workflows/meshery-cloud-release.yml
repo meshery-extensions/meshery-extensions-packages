@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Meshery Cloud code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: meshery-cloud
           repository: layer5io/meshery-cloud
@@ -96,7 +96,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout 🛎️ repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v7
         with:
           path: meshery-cloud
           repository: layer5io/meshery-cloud
@@ -188,7 +188,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Meshery Cloud code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: layer5io/meshery-cloud
         path: meshery-cloud

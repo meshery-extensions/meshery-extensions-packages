@@ -74,7 +74,7 @@ jobs:
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Checkout for composite action
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -89,7 +89,7 @@ jobs:
           recreate: true
       
       - name: Checkout Cloud code (PR head)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: "layer5io/meshery-cloud"
           path: ./meshery-cloud

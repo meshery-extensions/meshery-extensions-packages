@@ -432,7 +432,7 @@ validate_input "$DESIGN_ID"
 ```yaml
 # Pin action versions
 - uses: actions/checkout@v4.1.1  # Good: specific version
-# NOT: uses: actions/checkout@master  # Bad: moving target
+# NOT: uses: actions/checkout@v7  # Bad: moving target
 
 # Scan for vulnerabilities
 - name: Security scan
