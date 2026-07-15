@@ -57,9 +57,9 @@ jobs:
           repository: meshery/meshery
           fetch-depth: 1
           token: ${{ secrets.GH_ACCESS_TOKEN }}
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22.x"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: '**/package-lock.json'
       - name: Make changes to pull request
@@ -97,9 +97,9 @@ jobs:
           repository: layer5labs/meshery-extensions
           fetch-depth: 1
           token: ${{ secrets.GH_ACCESS_TOKEN }}
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22.x"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: '**/package-lock.json'
       - name: Make changes to pull request
@@ -137,9 +137,9 @@ jobs:
           repository: layer5io/meshery-cloud
           fetch-depth: 1
           token: ${{ secrets.GH_ACCESS_TOKEN }}
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22.x"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: '**/package-lock.json'
       - name: Make changes to pull request
@@ -177,9 +177,9 @@ jobs:
           repository: layer5io/sistent
           fetch-depth: 1
           token: ${{ secrets.GH_ACCESS_TOKEN }}
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22.x"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: 'package-lock.json'
       - name: Make changes to pull request

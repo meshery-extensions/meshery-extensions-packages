@@ -44,9 +44,9 @@ jobs:
           cache-dependency-path: "**/*.sum"
           go-version: "1.26.4"
       - name: setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
-          node-version: ${{ vars.NODE_VERSION || '22.x' }}
+          node-version: ${{ vars.NODE_VERSION || '22' }}
           cache: "npm"
           cache-dependency-path: 'meshery-extensions/ui/package-lock.json'
 
