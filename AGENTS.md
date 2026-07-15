@@ -105,7 +105,7 @@ The `meshery-extensions-packages` repository contains:
 
 ```yaml
 - name: Sparse checkout (REQUIRED for large repos)
-  uses: actions/checkout@v4
+  uses: actions/checkout@v7
   with:
     repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |
@@ -151,7 +151,7 @@ git sparse-checkout disable
 
 - name: Sparse checkout packages
   if: steps.cache.outputs.cache-hit != 'true'
-  uses: actions/checkout@v4
+  uses: actions/checkout@v7
   with:
     repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |
@@ -178,7 +178,7 @@ jobs:
   update-badge:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: |
             assets/badges/${{ github.event.client_payload.badge_name }}
@@ -213,7 +213,7 @@ jobs:
   validate-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: |
             email
@@ -431,7 +431,7 @@ validate_input "$DESIGN_ID"
 
 ```yaml
 # Pin action versions
-- uses: actions/checkout@v4.1.1  # Good: specific version
+- uses: actions/checkout@v7.1.1  # Good: specific version
 # NOT: uses: actions/checkout@v7  # Bad: moving target
 
 # Scan for vulnerabilities
@@ -477,7 +477,7 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: |
             action-assets

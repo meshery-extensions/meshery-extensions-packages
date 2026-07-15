@@ -32,7 +32,7 @@ When creating or modifying GitHub Actions workflows, **ALWAYS** use sparse check
 
 ```yaml
 - name: Checkout repository
-  uses: actions/checkout@v4
+  uses: actions/checkout@v7
   with:
     repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |

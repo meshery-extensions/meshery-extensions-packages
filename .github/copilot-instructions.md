@@ -47,7 +47,7 @@ git sparse-checkout add assets
 **For CI/CD workflows, always configure sparse checkout:**
 
 ```yaml
-- uses: actions/checkout@v4
+- uses: actions/checkout@v7
   with:
     repository: meshery-extensions/meshery-extensions-packages
     sparse-checkout: |
@@ -139,7 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: |
             assets/badges
@@ -228,7 +228,7 @@ Before submitting PRs:
 
 1. **Use shallow clones in CI/CD:**
    ```yaml
-   - uses: actions/checkout@v4
+   - uses: actions/checkout@v7
      with:
        fetch-depth: 1
        sparse-checkout: |
