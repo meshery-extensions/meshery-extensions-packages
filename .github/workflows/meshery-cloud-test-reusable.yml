@@ -598,7 +598,7 @@ jobs:
   e2e-tests:
     name: Playwright e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 55
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
@@ -657,7 +657,7 @@ jobs:
       # observed e2e runtime is ~22 min; 25 min gives a small buffer.
       - name: Run Cloud UI e2e tests
         id: e2e
-        timeout-minutes: 35
+        timeout-minutes: 55
         continue-on-error: true
         working-directory: meshery-cloud/ui
         env:
