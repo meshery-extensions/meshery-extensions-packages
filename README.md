@@ -36,7 +36,7 @@
         <h2>Repo Overview</h2>
 <br />
 
-> [!WARNING]
+>  ⚠️ WARNING: LARGE REPO
 >  Before cloning this repo to your local machine, ensure that you do so sparsely or your clone will take a long time to download / sync.
 >
 > Example of a sparse checkout:
