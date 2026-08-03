@@ -311,15 +311,23 @@ jobs:
             BASE="qa"
           fi
           SERVER_DEST="$BASE/meshery-server-results"
-          rm -rf "$SERVER_DEST"
-          mkdir -p "$SERVER_DEST"
+          # Only wipe + replace when this run produced results; an unconditional
+          # rm -rf here would let an empty run commit a deletion of the published
+          # server results (same destructive-sync bug fixed for the e2e/Kanvas
+          # steps). Leave the destination intact when there is nothing to sync.
+          synced=0
           for dir in \
             meshery-cloud/allure-results \
             meshery-cloud/server/*/allure-results; do
-            [ -d "$dir" ] || continue
+            [ -d "$dir" ] && [ -n "$(find "$dir" -type f -print -quit 2>/dev/null)" ] || continue
+            if [ "$synced" -eq 0 ]; then rm -rf "$SERVER_DEST"; mkdir -p "$SERVER_DEST"; synced=1; fi
             cp -R "$dir/." "$SERVER_DEST/" 2>/dev/null || true
           done
-          echo "meshery-server-results: $(find "$SERVER_DEST" -type f | wc -l) file(s)"
+          if [ "$synced" -eq 0 ]; then
+            echo "No server allure-results this run; leaving $SERVER_DEST intact"
+          else
+            echo "meshery-server-results: $(find "$SERVER_DEST" -type f | wc -l) file(s)"
+          fi
 
       - name: Commit & push server results to qa
         if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
@@ -757,13 +765,22 @@ jobs:
             BASE="qa"
           fi
           E2E_DEST="$BASE/remote-provider-results"
-          rm -rf "$E2E_DEST"
-          mkdir -p "$E2E_DEST"
+          # Only wipe + replace the published results when this run produced
+          # some. An unconditional rm -rf here, committed via file_pattern below,
+          # turns an empty/cancelled e2e run into a commit that DELETES the last
+          # good Layer5 Cloud report (this is how remote-provider-results was
+          # emptied). Leave the destination intact when there is nothing to sync.
+          synced=0
           for dir in meshery-cloud/ui/allure-results; do
-            [ -d "$dir" ] || continue
+            [ -d "$dir" ] && [ -n "$(find "$dir" -type f -print -quit 2>/dev/null)" ] || continue
+            if [ "$synced" -eq 0 ]; then rm -rf "$E2E_DEST"; mkdir -p "$E2E_DEST"; synced=1; fi
             cp -R "$dir/." "$E2E_DEST/" 2>/dev/null || true
           done
-          echo "remote-provider-results (e2e): $(find "$E2E_DEST" -type f | wc -l) file(s)"
+          if [ "$synced" -eq 0 ]; then
+            echo "No e2e allure-results this run; leaving $E2E_DEST intact"
+          else
+            echo "remote-provider-results (e2e): $(find "$E2E_DEST" -type f | wc -l) file(s)"
+          fi
 
       - name: Commit & push e2e results to qa
         if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
