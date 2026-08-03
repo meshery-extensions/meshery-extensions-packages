@@ -437,15 +437,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           mkdir -p merged-allure-results
-          # Each shard may download with the original uploaded path preserved.
-          # Support both the nested artifact layout and the direct-root layout
-          # so the QA sync sees the full run without changing upload behavior.
-          for dir in \
-            shard-artifacts/playwright-artifacts-shard-*/meshery-extensions/tests/allure-results \
-            shard-artifacts/playwright-artifacts-shard-*/allure-results; do
-            [ -d "$dir" ] || continue
+          # Locate every shard's allure-results dir regardless of the layout the
+          # download step produces. Hardcoded globs broke silently when the
+          # upload/download-artifact actions were bumped (the new extraction
+          # layout no longer matched a fixed path prefix), which emptied the
+          # merge and - via the destructive sync below - deleted the published
+          # Kanvas results. `find` is layout-agnostic, matching the same
+          # robustness already used for shard-outcome discovery.
+          while IFS= read -r dir; do
             cp -R "$dir/." merged-allure-results/
-          done
+          done < <(find shard-artifacts -type d -name allure-results 2>/dev/null)
 
       # Master runs populate the canonical kanvas-results/ tree that feeds the
       # main qa.meshery.io dashboard. PR runs land under pr-reports/<N>/ so
@@ -460,13 +461,18 @@ jobs:
           else
             DEST="qa/kanvas-results"
           fi
-          rm -rf "$DEST"
-          mkdir -p "$DEST"
+          # Only wipe + replace the published results when THIS run produced
+          # some. Wiping unconditionally, then committing via git-auto-commit's
+          # file_pattern, turns an empty run into a commit that DELETES the last
+          # good report (this is exactly how kanvas-results was emptied). Leave
+          # the destination untouched when there is nothing to sync.
           if [ -d merged-allure-results ] && [ -n "$(ls -A merged-allure-results 2>/dev/null)" ]; then
+            rm -rf "$DEST"
+            mkdir -p "$DEST"
             cp -R merged-allure-results/. "$DEST/"
             echo "Synced $(find "$DEST" -type f | wc -l) file(s) to $DEST"
           else
-            echo "No merged-allure-results to sync"
+            echo "No merged-allure-results to sync; leaving $DEST intact"
           fi
 
       - name: Commit & push results to qa
