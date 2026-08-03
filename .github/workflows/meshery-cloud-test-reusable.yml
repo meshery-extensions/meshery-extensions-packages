@@ -606,7 +606,11 @@ jobs:
   e2e-tests:
     name: Playwright e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 55
+    # e2e is a long, serial (workers:1) suite (~240 tests). Keep the job ceiling
+    # generous so a full run can finish and go green; the test step below uses a
+    # smaller timeout so an overrun still leaves the job alive to run the QA sync
+    # + gating steps rather than being cancelled with nothing published.
+    timeout-minutes: 85
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
@@ -657,19 +661,28 @@ jobs:
         working-directory: meshery-cloud/ui
         run: npx playwright install --with-deps
 
-      # ALLURE_RESULTS_DIR routes allure-playwright (when wired in
-      # meshery-cloud) to a path the sync-to-qa step collects. Until that
-      # reporter is added, the directory stays empty and sync no-ops.
-      # Step timeout is set below the job timeout so a hung test fails
-      # with room left for the QA sync + gating step to run. Current
-      # observed e2e runtime is ~22 min; 25 min gives a small buffer.
+      # allure-playwright (wired in meshery-cloud/ui/playwright.config.ts) writes
+      # per-test Allure results to ALLURE_RESULTS_DIR, which the sync-to-qa step
+      # below collects. ALLURE_LABEL_* are read by allure-js-commons and stamped
+      # on every result as global labels: project=Layer5Cloud is the label the
+      # qa.meshery.io "Remote Provider Layer5 Cloud" report filters on (see
+      # meshery/qa allurerc.mjs), mirroring how the Kanvas lane sets
+      # ALLURE_LABEL_project=Kanvas.
+      #
+      # The step timeout is kept BELOW the job timeout so that when the suite
+      # overruns, only the test step is killed (continue-on-error) while the job
+      # keeps running - the QA sync + gating steps still execute and publish the
+      # results produced so far, instead of the whole job being cancelled with
+      # nothing synced.
       - name: Run Cloud UI e2e tests
         id: e2e
-        timeout-minutes: 55
+        timeout-minutes: 75
         continue-on-error: true
         working-directory: meshery-cloud/ui
         env:
           ALLURE_RESULTS_DIR: ${{ github.workspace }}/meshery-cloud/ui/allure-results
+          ALLURE_LABEL_project: Layer5Cloud
+          ALLURE_LABEL_type: e2e
         shell: bash
         run: |
           set -o pipefail
