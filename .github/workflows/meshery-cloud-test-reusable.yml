@@ -661,9 +661,12 @@ jobs:
         working-directory: meshery-cloud/ui
         run: npx playwright install --with-deps
 
-      # allure-playwright (wired in meshery-cloud/ui/playwright.config.ts) writes
-      # per-test Allure results to ALLURE_RESULTS_DIR, which the sync-to-qa step
-      # below collects. ALLURE_LABEL_* are read by allure-js-commons and stamped
+      # allure-playwright (wired in meshery-cloud/ui/playwright.config.ts by
+      # layer5io/meshery-cloud#5846) writes per-test Allure results to
+      # ALLURE_RESULTS_DIR, which the sync-to-qa step below collects. Until that
+      # companion PR lands the reporter is absent, the results dir stays empty,
+      # and the non-empty-guarded sync simply no-ops - this step is safe either
+      # way. ALLURE_LABEL_* are read by allure-js-commons and stamped
       # on every result as global labels: project=Layer5Cloud is the label the
       # qa.meshery.io "Remote Provider Layer5 Cloud" report filters on (see
       # meshery/qa allurerc.mjs), mirroring how the Kanvas lane sets
