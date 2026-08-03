@@ -466,7 +466,7 @@ jobs:
           # file_pattern, turns an empty run into a commit that DELETES the last
           # good report (this is exactly how kanvas-results was emptied). Leave
           # the destination untouched when there is nothing to sync.
-          if [ -d merged-allure-results ] && [ -n "$(ls -A merged-allure-results 2>/dev/null)" ]; then
+          if [ -d merged-allure-results ] && [ -n "$(find merged-allure-results -type f -print -quit 2>/dev/null)" ]; then
             rm -rf "$DEST"
             mkdir -p "$DEST"
             cp -R merged-allure-results/. "$DEST/"

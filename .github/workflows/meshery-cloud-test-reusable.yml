@@ -319,7 +319,7 @@ jobs:
           for dir in \
             meshery-cloud/allure-results \
             meshery-cloud/server/*/allure-results; do
-            [ -d "$dir" ] && [ -n "$(ls -A "$dir" 2>/dev/null)" ] || continue
+            [ -d "$dir" ] && [ -n "$(find "$dir" -type f -print -quit 2>/dev/null)" ] || continue
             if [ "$synced" -eq 0 ]; then rm -rf "$SERVER_DEST"; mkdir -p "$SERVER_DEST"; synced=1; fi
             cp -R "$dir/." "$SERVER_DEST/" 2>/dev/null || true
           done
@@ -772,7 +772,7 @@ jobs:
           # emptied). Leave the destination intact when there is nothing to sync.
           synced=0
           for dir in meshery-cloud/ui/allure-results; do
-            [ -d "$dir" ] && [ -n "$(ls -A "$dir" 2>/dev/null)" ] || continue
+            [ -d "$dir" ] && [ -n "$(find "$dir" -type f -print -quit 2>/dev/null)" ] || continue
             if [ "$synced" -eq 0 ]; then rm -rf "$E2E_DEST"; mkdir -p "$E2E_DEST"; synced=1; fi
             cp -R "$dir/." "$E2E_DEST/" 2>/dev/null || true
           done
