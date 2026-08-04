@@ -1891,7 +1891,7 @@
       "Category": "Operator",
       "Documented?": "MISSING",
       "Enterprise Comparison Tier": "x",
-      "Feature": "Direct terminal access to one ore more pods/containers simultaneously. Integrated experience.",
+      "Feature": "Direct terminal access to one or more pods/containers simultaneously. Integrated experience.",
       "Free Comparison Tier": "",
       "Function": "View Interactive Terminal",
       "Pricing page?": "X",
