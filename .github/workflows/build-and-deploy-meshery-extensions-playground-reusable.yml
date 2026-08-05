@@ -217,19 +217,33 @@ jobs:
           username: ${{ secrets.OCI_BASTION_USERNAME }}
           key: ${{ secrets.OCI_BASTION_KEY }}
           port: 22
-          # Without this, only the LAST command's exit status is reported, so a failure of
+          # Redundant with `set -eu` below. Kept as a second layer, but the script does not depend
+          # on it: without it, only the LAST command's exit status is reported, so a failure of
           # `use-context` would be masked by a later command succeeding - and the image would be
           # set against whatever context happened to be current.
           script_stop: true
           script: |
+            # Failure semantics belong in the script, not in the action. Relying on the action to
+            # propagate a failure is the same shape as the bug this step exists to fix.
+            # `pipefail` is deliberately omitted: there are no pipes here, and it is not POSIX, so
+            # it would fail outright under a dash/sh login shell - turning a safety measure into a
+            # release blocker.
+            set -eu
+
+            NAMESPACE=meshery-extensions
+            DEPLOYMENT=kanvas
+            # Equal to DEPLOYMENT by coincidence, not by rule - this is the container name inside
+            # the pod spec. Kept separate so renaming one cannot silently move the other.
+            CONTAINER=kanvas
+
             kubectl config use-context prod
-            kubectl set image deployment/kanvas kanvas=layer5/kanvas:${{env.MESHERY_EXTENSION_VERSION}} -n meshery-extensions
+            kubectl set image "deployment/$DEPLOYMENT" "$CONTAINER=layer5/kanvas:${{env.MESHERY_EXTENSION_VERSION}}" -n "$NAMESPACE"
             # `set image` only patches the Deployment; it returns 0 long before any pod pulls the
             # image. Without this wait, a cluster that cannot pull the tag leaves the new pods in
             # ImagePullBackOff while the old ReplicaSet keeps serving - so the release looks GREEN,
             # no failure email is sent, and prod silently never advances. Waiting for convergence
             # turns that into a red build. Matters most on the first pull from a new repository.
-            kubectl rollout status deployment/kanvas -n meshery-extensions --timeout=10m
+            kubectl rollout status "deployment/$DEPLOYMENT" -n "$NAMESPACE" --timeout=10m
 
       - name: Send Email on Rollout Kanvas Release Failure
         if: ${{ failure() }}
