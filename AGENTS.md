@@ -242,6 +242,39 @@ jobs:
           ./scripts/deploy-templates.sh production
 ```
 
+### Pattern 4: Moving a Docker Hub Image to a New Repository
+
+This repo publishes the container images for products whose deploy manifests live elsewhere.
+Changing a publish target is therefore never a one-line edit, and **a clean cut does not fail
+loudly** - the old tag still exists, so unmigrated consumers keep pulling it successfully and
+silently freeze on a stale image. Nothing goes red.
+
+Before editing any `docker/metadata-action` `images:` value or `docker push` target:
+
+1. **Enumerate the consumers first**, across every repo - deploy manifests, Helm values, compose
+   files, docs, other workflows. Include call sites that build the reference by variable or string
+   concatenation (`SERVER_IMAGE=...` + a Makefile, a `sed` that rewrites a tag); a grep for the
+   literal image string in the consuming file will not find those.
+2. **Check whether the same job also deploys.** In the `meshery-cloud-*` workflows here, each push
+   step is followed *in the same job* by a `helm upgrade` that sets only `image.tag`. The
+   repository half comes from `layer5io/meshery-cloud install/environment/{staging,production}/values.yaml`
+   - a different repo. Switching the push target alone publishes to one repository while production
+   pulls from another.
+3. **Verify push rights to the target.** Docker Hub grants them per repository, so access to
+   `layer5/foo` implies nothing about `meshery/foo`. A `denied: requested access to the resource is
+   denied` is a permissions fact, not a transient fault - and when a deploy step sits behind the
+   push, it blocks the deploy too.
+4. **Mirror, do not cut.** Publish the identical tag set to both repositories by listing both under
+   `images:`, and track removal in an issue whose end condition is a *checkable list of migrated
+   references*, not a duration. Retain the old tags after the mirror is dropped: while they exist a
+   stale pin is merely stale; delete them and it becomes a real `ImagePullBackOff`.
+
+Worked examples: issue #744 (Kanvas, `layer5/meshery:kanvas-*` -> `layer5/kanvas`) and issue #746
+(Meshery Cloud, `layer5/meshery-cloud` -> `meshery/meshery-cloud`).
+
+Note that **Kanvas deliberately stays on the `layer5` organization.** A grep for `layer5/` here
+matches `layer5/kanvas` and the `layer5/meshery:kanvas-*` mirror; both are intentional.
+
 ## GitHub Actions Best Practices
 
 **Key Points:**
@@ -598,3 +631,10 @@ When contributing across these repositories:
 ---
 
 **Questions?** Join us on [Slack](https://slack.layer5.io) or open a discussion in the [Community Forum](https://discuss.layer5.io).
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.
