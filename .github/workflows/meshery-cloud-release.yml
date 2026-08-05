@@ -139,11 +139,18 @@ jobs:
         uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
+      # Publishes the identical tag set to BOTH Docker Hub repositories. `meshery/meshery-cloud`
+      # is the new canonical target; `layer5/meshery-cloud` is a TRANSITIONAL mirror tracked for
+      # removal in issue #746. See the `prod` job below for the full rationale - it applies
+      # identically here, with `install/environment/staging/values.yaml` as the pinning file and
+      # the "Deploy staging on OCI OKE" step below as the consumer.
       - name: Docker Meta
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: layer5/meshery-cloud
+          images: |
+            meshery/meshery-cloud
+            layer5/meshery-cloud
           flavor: |
             latest=true
           tags: |
@@ -221,11 +228,33 @@ jobs:
       uses: docker/setup-qemu-action@v4
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v4
+    # Publishes the identical tag set to BOTH Docker Hub repositories. `meshery/meshery-cloud`
+    # is the new canonical target; `layer5/meshery-cloud` is a TRANSITIONAL mirror tracked for
+    # removal in issue #746.
+    #
+    # This is a mirror, not a fallback. A clean cut here does NOT fail loudly: the old
+    # `production-latest` tag still exists, so unmigrated consumers keep pulling it successfully
+    # and silently freeze on a stale image. Nothing goes red. `layer5/meshery-cloud` has ~838k
+    # pulls, so that includes self-hosted deployments outside these organizations, which cannot be
+    # enumerated or migrated on a schedule.
+    #
+    # Most importantly, the "Deploy production on bastion host" step below is in THIS job and
+    # pulls what this step pushes - but it sets only `image.tag`. The repository half comes from
+    # `layer5io/meshery-cloud install/environment/production/values.yaml`, which still says
+    # `layer5/meshery-cloud`. Dropping the mirror before that file moves would make CI publish to
+    # one repository while PRODUCTION pulls from another. See issue #746 for the full consumer list.
+    #
+    # Docker Hub grants push rights per repository: a `denied: requested access to the resource is
+    # denied` below means the CI credential lacks push access to `meshery/meshery-cloud` - not a
+    # transient fault. Because the deploy step sits behind this one, such a denial blocks the
+    # production deploy too.
     - name: Docker Meta
       id: meta
       uses: docker/metadata-action@v6
       with:
-          images: layer5/meshery-cloud
+          images: |
+            meshery/meshery-cloud
+            layer5/meshery-cloud
           flavor: |
             latest=true
           tags: |
