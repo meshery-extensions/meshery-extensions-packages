@@ -163,17 +163,43 @@ jobs:
       # The first two sets both describe Deployment/kanvas in namespace meshery-extensions - the same
       # object the "Rollout Kanvas" step below mutates - so a re-apply of a stale copy silently
       # reverts the image.
+      #
+      # The canonical `layer5/kanvas` tags are pushed FIRST. If that fails, the legacy push and the
+      # rollout below are both skipped (`bash -e` + no `continue-on-error`), so a broken release
+      # cannot leave the two repositories publishing different images.
       - name: Docker tag & push
         run: |
 
-          docker tag layer5/kanvas:latest layer5/kanvas:${GITHUB_SHA::8}
+          docker tag layer5/kanvas:latest "layer5/kanvas:${GITHUB_SHA::8}"
           docker tag layer5/kanvas:latest layer5/kanvas:${{ env.MESHERY_VERSION }}
           docker tag layer5/kanvas:latest layer5/kanvas:${{ env.MESHERY_EXTENSION_VERSION }}
 
           docker push layer5/kanvas:latest
-          docker push layer5/kanvas:${GITHUB_SHA::8}
+          docker push "layer5/kanvas:${GITHUB_SHA::8}"
           docker push layer5/kanvas:${{ env.MESHERY_VERSION }}
           docker push layer5/kanvas:${{ env.MESHERY_EXTENSION_VERSION }}
+
+          # --- TRANSITIONAL: legacy layer5/meshery:kanvas-* mirror -------------------------------
+          # Tracked for removal in issue #744. Remove this block - not before - once all 7 known
+          # references listed there resolve `layer5/kanvas`.
+          #
+          # This is a mirror, not a fallback. Without it a clean cut does NOT fail loudly: the old
+          # `kanvas-latest` tag still exists, so unmigrated consumers keep pulling it successfully
+          # and silently freeze on a stale image. Nothing goes red. Mirroring keeps them current
+          # until each has moved.
+          #
+          # All four tags are mirrored, not just `latest`: layer5io/kanvas-docker-extension pins
+          # the extension-version tag via `sed`, so mirroring `latest` alone would not cover it.
+          docker tag layer5/kanvas:latest layer5/meshery:kanvas-latest
+          docker tag layer5/kanvas:latest "layer5/meshery:kanvas-${GITHUB_SHA::8}"
+          docker tag layer5/kanvas:latest layer5/meshery:kanvas-${{ env.MESHERY_VERSION }}
+          docker tag layer5/kanvas:latest layer5/meshery:kanvas-${{ env.MESHERY_EXTENSION_VERSION }}
+
+          docker push layer5/meshery:kanvas-latest
+          docker push "layer5/meshery:kanvas-${GITHUB_SHA::8}"
+          docker push layer5/meshery:kanvas-${{ env.MESHERY_VERSION }}
+          docker push layer5/meshery:kanvas-${{ env.MESHERY_EXTENSION_VERSION }}
+          # --- end TRANSITIONAL (issue #744) -----------------------------------------------------
 
       - name: Rollout Kanvas
         uses: appleboy/ssh-action@master
