@@ -217,9 +217,19 @@ jobs:
           username: ${{ secrets.OCI_BASTION_USERNAME }}
           key: ${{ secrets.OCI_BASTION_KEY }}
           port: 22
+          # Without this, only the LAST command's exit status is reported, so a failure of
+          # `use-context` would be masked by a later command succeeding - and the image would be
+          # set against whatever context happened to be current.
+          script_stop: true
           script: |
-            kubectl config use-context prod 
+            kubectl config use-context prod
             kubectl set image deployment/kanvas kanvas=layer5/kanvas:${{env.MESHERY_EXTENSION_VERSION}} -n meshery-extensions
+            # `set image` only patches the Deployment; it returns 0 long before any pod pulls the
+            # image. Without this wait, a cluster that cannot pull the tag leaves the new pods in
+            # ImagePullBackOff while the old ReplicaSet keeps serving - so the release looks GREEN,
+            # no failure email is sent, and prod silently never advances. Waiting for convergence
+            # turns that into a red build. Matters most on the first pull from a new repository.
+            kubectl rollout status deployment/kanvas -n meshery-extensions --timeout=10m
 
       - name: Send Email on Rollout Kanvas Release Failure
         if: ${{ failure() }}
