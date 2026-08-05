@@ -126,7 +126,7 @@ jobs:
       - name: Docker build & tag
         working-directory: "./meshery"
         run: |
-          DOCKER_BUILDKIT=1 docker build -f install/docker/Dockerfile --no-cache -t layer5/meshery:kanvas-latest --build-arg TOKEN=${{ secrets.GLOBAL_TOKEN }} --build-arg GIT_COMMITSHA=${GITHUB_SHA::8} --build-arg GIT_VERSION=${{ env.MESHERY_EXTENSION_VERSION }} --build-arg RELEASE_CHANNEL=${RELEASE_CHANNEL} .
+          DOCKER_BUILDKIT=1 docker build -f install/docker/Dockerfile --no-cache -t layer5/kanvas:latest --build-arg TOKEN=${{ secrets.GLOBAL_TOKEN }} --build-arg GIT_COMMITSHA=${GITHUB_SHA::8} --build-arg GIT_VERSION=${{ env.MESHERY_EXTENSION_VERSION }} --build-arg RELEASE_CHANNEL=${RELEASE_CHANNEL} .
 
       - name: Bundle kanvas extension with the image
         working-directory: "./meshery-extensions"
@@ -140,27 +140,40 @@ jobs:
 
           ls;
 
-          docker run -d --name meshery-tmp layer5/meshery:kanvas-latest
+          docker run -d --name meshery-tmp layer5/kanvas:latest
 
           docker cp -a ./provider/ meshery-tmp:/home/appuser/.meshery/
 
-          docker container commit meshery-tmp layer5/meshery:kanvas-latest
+          docker container commit meshery-tmp layer5/kanvas:latest
       - name: Clean up checkout out repos
         run: |
           rm -rf ./meshery 
           rm -rf ./meshery-extensions
           
+      # Kanvas publishes to Docker Hub `layer5/kanvas` (NOT `layer5/meshery`, and NOT
+      # `layer5/meshery-cloud`, which is a different product). Tags: latest, <short-sha>,
+      # <meshery-version>, <extension-version> - no `kanvas-` prefix; the repository name
+      # already carries that meaning.
+      #
+      # These tags are consumed outside this repo. Anything changing them must be coordinated with:
+      #   - layer5labs/meshery-extensions  deploy/{prod,staging}/kanvas.yaml
+      #   - layer5io/meshery-cloud         deploy/{prod,staging}/kanvas/kanvas.new-deployment-svc.yaml
+      #   - layer5io/kanvas-docker-extension  docker-compose.yaml, and the `sed` that rewrites its
+      #     image tag in .github/workflows/{build-and-release,multi-platform}.yml
+      # The first two sets both describe Deployment/kanvas in namespace meshery-extensions - the same
+      # object the "Rollout Kanvas" step below mutates - so a re-apply of a stale copy silently
+      # reverts the image.
       - name: Docker tag & push
         run: |
 
-          docker tag layer5/meshery:kanvas-latest layer5/meshery:kanvas-${GITHUB_SHA::8}
-          docker tag layer5/meshery:kanvas-latest layer5/meshery:kanvas-${{ env.MESHERY_VERSION }}
-          docker tag layer5/meshery:kanvas-latest layer5/meshery:kanvas-${{ env.MESHERY_EXTENSION_VERSION }}
+          docker tag layer5/kanvas:latest layer5/kanvas:${GITHUB_SHA::8}
+          docker tag layer5/kanvas:latest layer5/kanvas:${{ env.MESHERY_VERSION }}
+          docker tag layer5/kanvas:latest layer5/kanvas:${{ env.MESHERY_EXTENSION_VERSION }}
 
-          docker push layer5/meshery:kanvas-latest
-          docker push layer5/meshery:kanvas-${GITHUB_SHA::8}
-          docker push layer5/meshery:kanvas-${{ env.MESHERY_VERSION }}
-          docker push layer5/meshery:kanvas-${{ env.MESHERY_EXTENSION_VERSION }}
+          docker push layer5/kanvas:latest
+          docker push layer5/kanvas:${GITHUB_SHA::8}
+          docker push layer5/kanvas:${{ env.MESHERY_VERSION }}
+          docker push layer5/kanvas:${{ env.MESHERY_EXTENSION_VERSION }}
 
       - name: Rollout Kanvas
         uses: appleboy/ssh-action@master
@@ -171,7 +184,7 @@ jobs:
           port: 22
           script: |
             kubectl config use-context prod 
-            kubectl set image deployment/kanvas kanvas=layer5/meshery:kanvas-${{env.MESHERY_EXTENSION_VERSION}} -n meshery-extensions
+            kubectl set image deployment/kanvas kanvas=layer5/kanvas:${{env.MESHERY_EXTENSION_VERSION}} -n meshery-extensions
 
       - name: Send Email on Rollout Kanvas Release Failure
         if: ${{ failure() }}
