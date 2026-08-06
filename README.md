@@ -30,11 +30,12 @@
 
 <div>
 <a href="https://github.com/meshery/meshery/blob/master/GOVERNANCE.md#extensions-githubcommeshery-extensions"><img src="https://img.shields.io/badge/support-community-00B39F?style=flat-square&logo=meshery&logoColor=white"  alt="Level of support for this repo"></a>        
-<br />
+<br /><br />
 
->  ⚠️ WARNING: LARGE REPO
->  Before cloning this repo to your local machine, ensure that you do so sparsely or your clone will take a long time to download / sync.
->
+
+### ⚠️ WARNING: LARGE REPO ⚠️
+_Before cloning this repo to your local machine, ensure that you do so sparsely or your clone will take a long time to download / sync.
+
 > Example of a sparse checkout:
 > 
 > ```shell
