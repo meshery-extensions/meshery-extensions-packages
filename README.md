@@ -34,6 +34,8 @@
     <!-- Repositories section -->
     <div>
         <h2>Repo Overview</h2>
+
+<a href="https://github.com/meshery/meshery/blob/master/GOVERNANCE.md#extensions-githubcommeshery-extensions"><img src="https://img.shields.io/badge/support-community-00B39F?style=flat-square&logo=meshery&logoColor=white"  alt="Level of support for this repo"></a>        
 <br />
 
 >  ⚠️ WARNING: LARGE REPO
