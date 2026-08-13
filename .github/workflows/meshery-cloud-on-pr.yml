@@ -13,6 +13,22 @@ on:
         required: false
         type: string
 
+# One live run per meshery-cloud PR. Without this, a rapid re-push leaves
+# several runs in flight at once, and because they all target the same PR they
+# collide on two shared, last-writer-wins resources:
+#
+#  * the l5io progress comments (one comment id per suite), which then hold
+#    interleaved lines from different runs testing DIFFERENT commits - observed
+#    on PR #5967, whose cloud-e2e-tests comment carried three ":x: failed"
+#    lines for runs 31652167381 / 31653088115 / 31652890559, out of order; and
+#  * the 'Meshery Cloud Build' commit status, which a slower older run can
+#    stamp on top of a newer one's.
+#
+# Cancelling the superseded run removes both collisions at the source.
+concurrency:
+  group: meshery-cloud-pr-${{ inputs.pr_number }}
+  cancel-in-progress: true
+
 jobs:
   build:
     uses: ./.github/workflows/meshery-cloud-build-reusable.yml
@@ -43,3 +59,60 @@ jobs:
       pr_commit_sha: ${{inputs.pr_commit_sha}}
       pr_number: ${{inputs.pr_number}}
       node_version: ${{inputs.node_version || vars.NODE_VERSION || '22.x'}}
+
+  # The commit status published to layer5io/meshery-cloud. It lives HERE, in
+  # the caller, because it is the only place that can see BOTH lanes: it used
+  # to sit inside meshery-cloud-build-reusable.yml with `needs:
+  # [build-meshery-cloud]`, which made it structurally incapable of observing
+  # the test lane. It therefore published `success` with the description
+  # "Cloud build and tests passed" the moment the build finished - measured on
+  # run 31644357922, where it went green at 21:57:54Z while `test / Playwright
+  # e2e` was still running and went on to fail with 22 failing tests at
+  # 22:31:34Z. `needs: [build, test]` is what makes the description true.
+  set-final-status:
+    name: set-final-status
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [build, test]
+    steps:
+      - name: Set final commit status
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          script: |
+            const build = '${{ needs.build.result }}';
+            const test = '${{ needs.test.result }}';
+
+            // Only an explicit success from BOTH lanes is green. Anything
+            // else - failure, cancelled, or skipped - is reported as not
+            // green, because "we did not observe a pass" must never render as
+            // "it passed".
+            const green = build === 'success' && test === 'success';
+            const state = green ? 'success' : 'failure';
+
+            const label = (name, result) =>
+              result === 'success' ? null : `${name} ${result}`;
+            const problems = [label('build', build), label('tests', test)].filter(Boolean);
+            const description = green
+              ? 'Cloud build and tests passed'
+              : `Cloud CI not green: ${problems.join(', ')}`;
+
+            core.info(`build=${build} test=${test} -> ${state}: ${description}`);
+
+            try {
+              await github.rest.repos.createCommitStatus({
+                owner: 'layer5io',
+                repo: 'meshery-cloud',
+                sha: '${{ inputs.pr_commit_sha }}',
+                state,
+                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                description: description.slice(0, 140),
+                context: 'Meshery Cloud Build'
+              });
+            } catch (error) {
+              if (error.status === 401 || error.status === 403) {
+                core.warning(`Skipping final commit status update for layer5io/meshery-cloud: ${error.message}`);
+                return;
+              }
+              throw error;
+            }
