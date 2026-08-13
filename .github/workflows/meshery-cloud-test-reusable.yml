@@ -177,7 +177,12 @@ jobs:
             # is the authoritative source and has no cap.
             TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
             CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
-            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+            # Compare BYTES, not characters: `head -c` cuts bytes while
+            # `${#VAR}` counts characters under a UTF-8 locale, and this output
+            # is multibyte-heavy (Playwright emits U+203A, U+2500, U+2718).
+            BLOCKS_BYTES=$(printf '%s' "$BLOCKS" | wc -c | tr -d ' ')
+            CAPPED_BYTES=$(printf '%s' "$CAPPED" | wc -c | tr -d ' ')
+            if [ "$CAPPED_BYTES" -lt "$BLOCKS_BYTES" ]; then
               # Drop the final, possibly partial, line before reporting.
               CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
               SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
@@ -264,7 +269,12 @@ jobs:
             # is the authoritative source and has no cap.
             TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
             CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
-            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+            # Compare BYTES, not characters: `head -c` cuts bytes while
+            # `${#VAR}` counts characters under a UTF-8 locale, and this output
+            # is multibyte-heavy (Playwright emits U+203A, U+2500, U+2718).
+            BLOCKS_BYTES=$(printf '%s' "$BLOCKS" | wc -c | tr -d ' ')
+            CAPPED_BYTES=$(printf '%s' "$CAPPED" | wc -c | tr -d ' ')
+            if [ "$CAPPED_BYTES" -lt "$BLOCKS_BYTES" ]; then
               # Drop the final, possibly partial, line before reporting.
               CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
               SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
@@ -332,6 +342,7 @@ jobs:
           echo "- $MESSAGE" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Sync server test results to qa
+        id: sync-qa
         if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
         run: |
           set -euo pipefail
@@ -360,6 +371,7 @@ jobs:
           fi
 
       - name: Commit & push server results to qa
+        id: commit-qa
         if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
         continue-on-error: true
         uses: stefanzweifel/git-auto-commit-action@v7
@@ -374,13 +386,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Comment QA sync success
-        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' && steps.sync-qa.outcome == 'success' && steps.commit-qa.outcome == 'success' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
           message: ":heavy_check_mark: Synced server test results to QA dashboard."
       - name: Comment QA sync failure
-        if: ${{ !cancelled() && steps.checkout-qa.outcome != 'success' }}
+        if: ${{ !cancelled() && (steps.checkout-qa.outcome != 'success' || steps.sync-qa.outcome != 'success' || steps.commit-qa.outcome != 'success') }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
@@ -395,7 +407,7 @@ jobs:
           id: cloud-tests
           message: ":white_check_mark: All Layer5 Cloud Server tests completed successfully."
       - name: Comment final failure
-        if: ${{ steps.unit-tests.outcome == 'failure' || steps.integration-tests.outcome == 'failure' }}
+        if: ${{ !cancelled() && (steps.unit-tests.outcome == 'failure' || steps.integration-tests.outcome == 'failure') }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
@@ -554,7 +566,12 @@ jobs:
             # is the authoritative source and has no cap.
             TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
             CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
-            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+            # Compare BYTES, not characters: `head -c` cuts bytes while
+            # `${#VAR}` counts characters under a UTF-8 locale, and this output
+            # is multibyte-heavy (Playwright emits U+203A, U+2500, U+2718).
+            BLOCKS_BYTES=$(printf '%s' "$BLOCKS" | wc -c | tr -d ' ')
+            CAPPED_BYTES=$(printf '%s' "$CAPPED" | wc -c | tr -d ' ')
+            if [ "$CAPPED_BYTES" -lt "$BLOCKS_BYTES" ]; then
               # Drop the final, possibly partial, line before reporting.
               CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
               SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
@@ -768,7 +785,12 @@ jobs:
             # is the authoritative source and has no cap.
             TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
             CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
-            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+            # Compare BYTES, not characters: `head -c` cuts bytes while
+            # `${#VAR}` counts characters under a UTF-8 locale, and this output
+            # is multibyte-heavy (Playwright emits U+203A, U+2500, U+2718).
+            BLOCKS_BYTES=$(printf '%s' "$BLOCKS" | wc -c | tr -d ' ')
+            CAPPED_BYTES=$(printf '%s' "$CAPPED" | wc -c | tr -d ' ')
+            if [ "$CAPPED_BYTES" -lt "$BLOCKS_BYTES" ]; then
               # Drop the final, possibly partial, line before reporting.
               CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
               SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
