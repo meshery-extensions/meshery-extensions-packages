@@ -127,7 +127,6 @@ jobs:
       #------------------------------------------
       - name: Run unit tests
         id: unit-tests
-        continue-on-error: true
         working-directory: meshery-cloud
         shell: bash
         run: |
@@ -135,20 +134,20 @@ jobs:
           make server-tests-unit 2>&1 | tee /tmp/unit-test-output.txt
 
       - name: Comment unit tests success
-        if: steps.unit-tests.outcome == 'success'
+        if: ${{ !cancelled() && steps.unit-tests.outcome == 'success' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
           message: ":heavy_check_mark: Unit tests passed. Running integration tests..."
       - name: Comment unit tests failure
-        if: steps.unit-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.unit-tests.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
           message: ":x: Unit tests failed. Running integration tests..."
 
       - name: Extract unit test failure details
-        if: steps.unit-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.unit-tests.outcome == 'failure' }}
         run: |
           OUTPUT="/tmp/unit-test-output.txt"
           if [ ! -f "$OUTPUT" ]; then
@@ -170,7 +169,23 @@ jobs:
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
               BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
-            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+            # Truncate on a LINE boundary and SAY SO. A bare `head -c 5000`
+            # cut mid-identifier (producing baseline entries like the partial
+            # "e2e/nav-") and dropped every later failure with no indication
+            # that anything was missing - a comment that under-reports while
+            # looking complete. The count below is the honest part; the run log
+            # is the authoritative source and has no cap.
+            TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
+            CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
+            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+              # Drop the final, possibly partial, line before reporting.
+              CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
+              SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
+              BLOCKS=$(printf '%s\n\n[truncated: showing %s of %s matched lines. This comment is byte-capped; the run log is not. Full list: gh run view %s --repo %s --log]\n' \
+                "$CAPPED" "$SHOWN" "$TOTAL" "${{ github.run_id }}" "${{ github.repository }}")
+            else
+              BLOCKS="$CAPPED"
+            fi
           fi
           {
             echo 'UNIT_FAILURES<<EOF_unit_9a8b7c'
@@ -178,7 +193,7 @@ jobs:
             echo 'EOF_unit_9a8b7c'
           } >> "$GITHUB_ENV"
       - name: Comment unit test failure details
-        if: steps.unit-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.unit-tests.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
@@ -195,8 +210,7 @@ jobs:
       #------------------------------------------
       - name: Run integration tests
         id: integration-tests
-        continue-on-error: true
-        if: ${{ inputs.run_integration_tests }}
+        if: ${{ !cancelled() && inputs.run_integration_tests }}
         working-directory: meshery-cloud
         shell: bash
         run: |
@@ -204,26 +218,26 @@ jobs:
           make ENVIRONMENT=staging server-tests-integration 2>&1 | tee /tmp/integration-test-output.txt
 
       - name: Comment integration tests success
-        if: steps.integration-tests.outcome == 'success'
+        if: ${{ !cancelled() && steps.integration-tests.outcome == 'success' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
           message: ":heavy_check_mark: Golang integration tests passed."
       - name: Comment integration tests failure
-        if: steps.integration-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.integration-tests.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
           message: ":x: Golang integration tests failed."
       - name: Comment integration tests skipped
-        if: steps.integration-tests.outcome == 'skipped'
+        if: ${{ !cancelled() && steps.integration-tests.outcome == 'skipped' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
           message: ":fast_forward: Integration tests skipped (not requested)."
 
       - name: Extract integration test failure details
-        if: steps.integration-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.integration-tests.outcome == 'failure' }}
         run: |
           OUTPUT="/tmp/integration-test-output.txt"
           if [ ! -f "$OUTPUT" ]; then
@@ -242,7 +256,23 @@ jobs:
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
               BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
-            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+            # Truncate on a LINE boundary and SAY SO. A bare `head -c 5000`
+            # cut mid-identifier (producing baseline entries like the partial
+            # "e2e/nav-") and dropped every later failure with no indication
+            # that anything was missing - a comment that under-reports while
+            # looking complete. The count below is the honest part; the run log
+            # is the authoritative source and has no cap.
+            TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
+            CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
+            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+              # Drop the final, possibly partial, line before reporting.
+              CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
+              SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
+              BLOCKS=$(printf '%s\n\n[truncated: showing %s of %s matched lines. This comment is byte-capped; the run log is not. Full list: gh run view %s --repo %s --log]\n' \
+                "$CAPPED" "$SHOWN" "$TOTAL" "${{ github.run_id }}" "${{ github.repository }}")
+            else
+              BLOCKS="$CAPPED"
+            fi
           fi
           {
             echo 'INTEGRATION_FAILURES<<EOF_int_9a8b7c'
@@ -250,7 +280,7 @@ jobs:
             echo 'EOF_int_9a8b7c'
           } >> "$GITHUB_ENV"
       - name: Comment integration test failure details
-        if: steps.integration-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.integration-tests.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
@@ -344,13 +374,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Comment QA sync success
-        if: ${{ success() && !cancelled() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome == 'success' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
           message: ":heavy_check_mark: Synced server test results to QA dashboard."
       - name: Comment QA sync failure
-        if: ${{ failure() }}
+        if: ${{ !cancelled() && steps.checkout-qa.outcome != 'success' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-tests
@@ -371,13 +401,6 @@ jobs:
           id: cloud-tests
           message: ":x: Layer5 Cloud Server tests completed with failures. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
 
-      - name: Fail if any tests failed
-        if: ${{ steps.unit-tests.outcome == 'failure' || steps.integration-tests.outcome == 'failure' }}
-        run: |
-          echo "::error::Test failures detected"
-          [ "${{ steps.unit-tests.outcome }}" = "failure" ] && echo "  - Unit tests failed"
-          [ "${{ steps.integration-tests.outcome }}" = "failure" ] && echo "  - Integration tests failed"
-          exit 1
       #------------------------------------------
 
   ui-tests:
@@ -474,7 +497,6 @@ jobs:
       #------------------------------------------
       - name: Run UI tests
         id: ui-tests
-        continue-on-error: true
         working-directory: meshery-cloud
         shell: bash
         run: |
@@ -491,20 +513,20 @@ jobs:
           retention-days: 14
 
       - name: Comment UI tests success
-        if: steps.ui-tests.outcome == 'success'
+        if: ${{ !cancelled() && steps.ui-tests.outcome == 'success' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-ui-tests
           message: ":white_check_mark: All Cloud UI tests passed."
       - name: Comment UI tests failure
-        if: steps.ui-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.ui-tests.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-ui-tests
           message: ":x: Cloud UI tests failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
 
       - name: Extract UI test failure details
-        if: steps.ui-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.ui-tests.outcome == 'failure' }}
         run: |
           OUTPUT="/tmp/ui-test-output.txt"
           if [ ! -f "$OUTPUT" ]; then
@@ -524,7 +546,23 @@ jobs:
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
               BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
-            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+            # Truncate on a LINE boundary and SAY SO. A bare `head -c 5000`
+            # cut mid-identifier (producing baseline entries like the partial
+            # "e2e/nav-") and dropped every later failure with no indication
+            # that anything was missing - a comment that under-reports while
+            # looking complete. The count below is the honest part; the run log
+            # is the authoritative source and has no cap.
+            TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
+            CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
+            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+              # Drop the final, possibly partial, line before reporting.
+              CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
+              SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
+              BLOCKS=$(printf '%s\n\n[truncated: showing %s of %s matched lines. This comment is byte-capped; the run log is not. Full list: gh run view %s --repo %s --log]\n' \
+                "$CAPPED" "$SHOWN" "$TOTAL" "${{ github.run_id }}" "${{ github.repository }}")
+            else
+              BLOCKS="$CAPPED"
+            fi
           fi
           {
             echo 'UI_FAILURES<<EOF_ui_9a8b7c'
@@ -532,7 +570,7 @@ jobs:
             echo 'EOF_ui_9a8b7c'
           } >> "$GITHUB_ENV"
       - name: Comment UI test failure details
-        if: steps.ui-tests.outcome == 'failure'
+        if: ${{ !cancelled() && steps.ui-tests.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-ui-tests
@@ -545,9 +583,6 @@ jobs:
 
             </details>
 
-      - name: Fail UI tests job
-        if: steps.ui-tests.outcome == 'failure'
-        run: exit 1
       #------------------------------------------
 
       #------------------------------------------
@@ -673,14 +708,22 @@ jobs:
       # ALLURE_LABEL_project=Kanvas.
       #
       # The step timeout is kept BELOW the job timeout so that when the suite
-      # overruns, only the test step is killed (continue-on-error) while the job
-      # keeps running - the QA sync + gating steps still execute and publish the
-      # results produced so far, instead of the whole job being cancelled with
-      # nothing synced.
+      # overruns, only the test step is killed while the job keeps running - the
+      # QA sync steps still execute and publish the results produced so far,
+      # instead of the whole job being cancelled with nothing synced.
+      #
+      # This step is deliberately NOT `continue-on-error`. It used to be, and
+      # that made the Actions API report the step's conclusion as `success`
+      # while the suite had failed - so "read the step conclusions instead of
+      # the badge", the advice given precisely because the badge lies, was
+      # itself wrong on this job. Downstream steps keep running because each is
+      # guarded with `!cancelled()`, not because the failure is hidden.
+      # NOTE: a bare `if: steps.e2e.outcome == 'failure'` is implicitly ANDed
+      # with success(), so dropping that guard would silently stop the failure
+      # comment from ever being posted.
       - name: Run Cloud UI e2e tests
         id: e2e
         timeout-minutes: 75
-        continue-on-error: true
         working-directory: meshery-cloud/ui
         env:
           ALLURE_RESULTS_DIR: ${{ github.workspace }}/meshery-cloud/ui/allure-results
@@ -692,20 +735,20 @@ jobs:
           npm run e2e 2>&1 | tee /tmp/e2e-output.txt
 
       - name: Comment e2e success
-        if: steps.e2e.outcome == 'success'
+        if: ${{ !cancelled() && steps.e2e.outcome == 'success' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-e2e-tests
           message: ":white_check_mark: Cloud Playwright e2e tests passed."
       - name: Comment e2e failure
-        if: steps.e2e.outcome == 'failure'
+        if: ${{ !cancelled() && steps.e2e.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-e2e-tests
           message: ":x: Cloud Playwright e2e tests failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
 
       - name: Extract e2e failure details
-        if: steps.e2e.outcome == 'failure'
+        if: ${{ !cancelled() && steps.e2e.outcome == 'failure' }}
         run: |
           OUTPUT="/tmp/e2e-output.txt"
           if [ ! -f "$OUTPUT" ]; then
@@ -717,7 +760,23 @@ jobs:
             if [ -z "$(echo "$BLOCKS" | tr -d '[:space:]')" ]; then
               BLOCKS="(no specific failure patterns matched — see full logs for details)"
             fi
-            BLOCKS=$(echo "$BLOCKS" | head -c 5000)
+            # Truncate on a LINE boundary and SAY SO. A bare `head -c 5000`
+            # cut mid-identifier (producing baseline entries like the partial
+            # "e2e/nav-") and dropped every later failure with no indication
+            # that anything was missing - a comment that under-reports while
+            # looking complete. The count below is the honest part; the run log
+            # is the authoritative source and has no cap.
+            TOTAL=$(printf '%s\n' "$BLOCKS" | grep -c '' || echo 0)
+            CAPPED=$(printf '%s\n' "$BLOCKS" | head -c 4200)
+            if [ "${#CAPPED}" -lt "${#BLOCKS}" ]; then
+              # Drop the final, possibly partial, line before reporting.
+              CAPPED=$(printf '%s\n' "$CAPPED" | sed '$d')
+              SHOWN=$(printf '%s\n' "$CAPPED" | grep -c '' || echo 0)
+              BLOCKS=$(printf '%s\n\n[truncated: showing %s of %s matched lines. This comment is byte-capped; the run log is not. Full list: gh run view %s --repo %s --log]\n' \
+                "$CAPPED" "$SHOWN" "$TOTAL" "${{ github.run_id }}" "${{ github.repository }}")
+            else
+              BLOCKS="$CAPPED"
+            fi
           fi
           {
             echo 'E2E_FAILURES<<EOF_e2e_9a8b7c'
@@ -725,7 +784,7 @@ jobs:
             echo 'EOF_e2e_9a8b7c'
           } >> "$GITHUB_ENV"
       - name: Comment e2e failure details
-        if: steps.e2e.outcome == 'failure'
+        if: ${{ !cancelled() && steps.e2e.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-e2e-tests
@@ -812,11 +871,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
-      # Gate after the sync so failing e2e results still publish to QA
-      # while the job correctly surfaces as failed in PR checks.
-      - name: Fail job if e2e failed
-        if: steps.e2e.outcome == 'failure'
-        run: |
-          echo "::error::Playwright e2e tests failed"
-          exit 1
       #------------------------------------------

@@ -248,39 +248,3 @@ jobs:
         uses: ./.github/actions/cloud-comment
         with:
           message: ":bar_chart: [QA dashboard for this PR](https://qa.meshery.io/pr/${{ inputs.pr_number }}/)"
-
-  set-final-status:
-    runs-on: ubuntu-24.04
-    if: always()
-    needs: [build-meshery-cloud]
-    steps:
-      - name: Set final commit status
-        uses: actions/github-script@v9
-        with:
-          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
-          script: |
-            const buildResult = '${{ needs.build-meshery-cloud.result }}';
-            const state = buildResult === 'success' ? 'success' : 'failure';
-            const descriptions = {
-              success: 'Cloud build and tests passed',
-              failure: 'Cloud build and tests failed',
-              cancelled: 'Cloud build was cancelled',
-              skipped: 'Cloud build was skipped',
-            };
-            try {
-              await github.rest.repos.createCommitStatus({
-                owner: 'layer5io',
-                repo: 'meshery-cloud',
-                sha: '${{ inputs.pr_commit_sha }}',
-                state,
-                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-                description: descriptions[buildResult] || descriptions.failure,
-                context: 'Meshery Cloud Build'
-              });
-            } catch (error) {
-              if (error.status === 401 || error.status === 403) {
-                core.warning(`Skipping final commit status update for layer5io/meshery-cloud: ${error.message}`);
-                return;
-              }
-              throw error;
-            }
