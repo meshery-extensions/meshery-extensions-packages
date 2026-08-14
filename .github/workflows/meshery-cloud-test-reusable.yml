@@ -51,7 +51,11 @@ jobs:
   server-tests:
     name: Server Tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Budget: ~4m of tests (measured on run 31801494396) + the 20m Checkout QA
+    # bound + slack. A job ceiling below the step bounds it encloses fires
+    # first and cancels the job, which is the outcome those bounds exist to
+    # prevent.
+    timeout-minutes: 40
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
@@ -324,6 +328,15 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
+        # Bounded so a stalled checkout cannot run the job into its ceiling and
+        # discard an already-decided test verdict (issue #750). Healthy
+        # durations measured on run 31801494396: 3s for the sparse meshery/qa
+        # checkout, 7m37s and 10m12s for these full ones - so 20 leaves ~2x
+        # headroom over the slowest while still failing fast against the 47-min
+        # hang measured on run 31708409430. The enclosing job's timeout-minutes must exceed this bound plus
+        # the test steps before it, or the job ceiling fires first and this
+        # bound never gets to act.
+        timeout-minutes: 20
         uses: actions/checkout@v7
         with:
           repository: meshery/qa
@@ -331,7 +344,7 @@ jobs:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 1
           sparse-checkout: |
-            pr-reports/${{ inputs.pr_number }}"
+            pr-reports/${{ inputs.pr_number }}
           sparse-checkout-cone-mode: false
 
       - name: Warn when server results are not published to QA
@@ -418,7 +431,15 @@ jobs:
   ui-tests:
     name: UI Tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # Budget: ~1m of Jest + the 20m Checkout QA bound + slack. This was 10m,
+    # which the QA checkout alone came within 30s of exhausting on a healthy
+    # run (7m37s of a 9m28s job on 31801494396). On 31708409430 it did exhaust
+    # it, and the loss was a PASS: `Run UI tests` succeeded in 36s at 14:14:15,
+    # then `Checkout QA` ran 8m08s and the job hit its own 10m ceiling at
+    # 14:22:29 - so a green suite was published as `cancelled`, which is
+    # neither pass nor fail. That was this job's own ceiling, not collateral
+    # from the e2e hang in the run beside it.
+    timeout-minutes: 35
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
@@ -610,6 +631,15 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
+        # Bounded so a stalled checkout cannot run the job into its ceiling and
+        # discard an already-decided test verdict (issue #750). Healthy
+        # durations measured on run 31801494396: 3s for the sparse meshery/qa
+        # checkout, 7m37s and 10m12s for these full ones - so 20 leaves ~2x
+        # headroom over the slowest while still failing fast against the 47-min
+        # hang measured on run 31708409430. The enclosing job's timeout-minutes must exceed this bound plus
+        # the test steps before it, or the job ceiling fires first and this
+        # bound never gets to act.
+        timeout-minutes: 20
         uses: actions/checkout@v7
         with:
           repository: meshery-extensions/qa
@@ -662,7 +692,12 @@ jobs:
     # generous so a full run can finish and go green; the test step below uses a
     # smaller timeout so an overrun still leaves the job alive to run the QA sync
     # + gating steps rather than being cancelled with nothing published.
-    timeout-minutes: 85
+    # Budget: the 75m test step + the 20m Checkout QA bound + slack. At the
+    # previous 85 that intent could not actually hold: a full-length test step
+    # left 10m, less than the 10m12s a *healthy* QA checkout measured on run
+    # 31801494396 - so the steps meant to publish the verdict were the ones the
+    # ceiling cancelled.
+    timeout-minutes: 105
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
@@ -835,6 +870,15 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
+        # Bounded so a stalled checkout cannot run the job into its ceiling and
+        # discard an already-decided test verdict (issue #750). Healthy
+        # durations measured on run 31801494396: 3s for the sparse meshery/qa
+        # checkout, 7m37s and 10m12s for these full ones - so 20 leaves ~2x
+        # headroom over the slowest while still failing fast against the 47-min
+        # hang measured on run 31708409430. The enclosing job's timeout-minutes must exceed this bound plus
+        # the test steps before it, or the job ceiling fires first and this
+        # bound never gets to act.
+        timeout-minutes: 20
         uses: actions/checkout@v7
         with:
           repository: meshery-extensions/qa
