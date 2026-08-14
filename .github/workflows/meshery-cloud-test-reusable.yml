@@ -332,8 +332,8 @@ jobs:
         # discard an already-decided test verdict (issue #750). Healthy
         # durations measured on run 31801494396: 3s for the sparse meshery/qa
         # checkout, 7m37s and 10m12s for these full ones - so 20 leaves ~2x
-        # headroom over the slowest while still failing fast against a 53-min
-        # hang. The enclosing job's timeout-minutes must exceed this bound plus
+        # headroom over the slowest while still failing fast against the 47-min
+        # hang measured on run 31708409430. The enclosing job's timeout-minutes must exceed this bound plus
         # the test steps before it, or the job ceiling fires first and this
         # bound never gets to act.
         timeout-minutes: 20
@@ -635,8 +635,8 @@ jobs:
         # discard an already-decided test verdict (issue #750). Healthy
         # durations measured on run 31801494396: 3s for the sparse meshery/qa
         # checkout, 7m37s and 10m12s for these full ones - so 20 leaves ~2x
-        # headroom over the slowest while still failing fast against a 53-min
-        # hang. The enclosing job's timeout-minutes must exceed this bound plus
+        # headroom over the slowest while still failing fast against the 47-min
+        # hang measured on run 31708409430. The enclosing job's timeout-minutes must exceed this bound plus
         # the test steps before it, or the job ceiling fires first and this
         # bound never gets to act.
         timeout-minutes: 20
@@ -874,8 +874,8 @@ jobs:
         # discard an already-decided test verdict (issue #750). Healthy
         # durations measured on run 31801494396: 3s for the sparse meshery/qa
         # checkout, 7m37s and 10m12s for these full ones - so 20 leaves ~2x
-        # headroom over the slowest while still failing fast against a 53-min
-        # hang. The enclosing job's timeout-minutes must exceed this bound plus
+        # headroom over the slowest while still failing fast against the 47-min
+        # hang measured on run 31708409430. The enclosing job's timeout-minutes must exceed this bound plus
         # the test steps before it, or the job ceiling fires first and this
         # bound never gets to act.
         timeout-minutes: 20
