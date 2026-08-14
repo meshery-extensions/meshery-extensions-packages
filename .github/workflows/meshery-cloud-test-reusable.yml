@@ -324,6 +324,12 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
+        # Bounded so a stalled checkout cannot run the job into its 85-minute
+        # ceiling and discard an already-decided test verdict (issue #750).
+        # Healthy durations measured on run 31801494396: 3s for the sparse
+        # meshery/qa checkout, 7m37s and 10m12s for these full ones - so 20
+        # leaves ~2x headroom while still failing fast against a 53-min hang.
+        timeout-minutes: 20
         uses: actions/checkout@v7
         with:
           repository: meshery/qa
@@ -331,7 +337,7 @@ jobs:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 1
           sparse-checkout: |
-            pr-reports/${{ inputs.pr_number }}"
+            pr-reports/${{ inputs.pr_number }}
           sparse-checkout-cone-mode: false
 
       - name: Warn when server results are not published to QA
@@ -610,6 +616,12 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
+        # Bounded so a stalled checkout cannot run the job into its 85-minute
+        # ceiling and discard an already-decided test verdict (issue #750).
+        # Healthy durations measured on run 31801494396: 3s for the sparse
+        # meshery/qa checkout, 7m37s and 10m12s for these full ones - so 20
+        # leaves ~2x headroom while still failing fast against a 53-min hang.
+        timeout-minutes: 20
         uses: actions/checkout@v7
         with:
           repository: meshery-extensions/qa
@@ -835,6 +847,12 @@ jobs:
         id: checkout-qa
         if: ${{ !cancelled() }}
         continue-on-error: true
+        # Bounded so a stalled checkout cannot run the job into its 85-minute
+        # ceiling and discard an already-decided test verdict (issue #750).
+        # Healthy durations measured on run 31801494396: 3s for the sparse
+        # meshery/qa checkout, 7m37s and 10m12s for these full ones - so 20
+        # leaves ~2x headroom while still failing fast against a 53-min hang.
+        timeout-minutes: 20
         uses: actions/checkout@v7
         with:
           repository: meshery-extensions/qa
