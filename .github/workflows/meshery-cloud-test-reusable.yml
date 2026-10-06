@@ -104,7 +104,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.26.4"
+          go-version: "1.27"
           check-latest: true
           cache: true
 
