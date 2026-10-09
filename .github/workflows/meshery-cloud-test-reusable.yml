@@ -54,13 +54,17 @@ jobs:
     # Budget: ~4m of tests (measured on run 31801494396) + the 20m Checkout QA
     # bound + slack. A job ceiling below the step bounds it encloses fires
     # first and cancels the job, which is the outcome those bounds exist to
-    # prevent.
+    # prevent. Setup steps carry their own 5-10m bounds (5x+ their slowest
+    # healthy time) so a hung download fails in minutes; one that hits its
+    # bound skips the tests, so it replaces their time in this budget rather
+    # than adding to it.
     timeout-minutes: 40
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Checkout for composite action
+        timeout-minutes: 5
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
@@ -78,6 +82,7 @@ jobs:
 
       #------------------------------------------
       - name: Checkout Cloud code
+        timeout-minutes: 5
         uses: actions/checkout@v7
         with:
           repository: layer5io/meshery-cloud
@@ -102,6 +107,7 @@ jobs:
 
       #------------------------------------------
       - name: Setup Go
+        timeout-minutes: 5
         uses: actions/setup-go@v6
         with:
           go-version: "1.27"
@@ -109,6 +115,7 @@ jobs:
           cache: true
 
       - name: Download dependencies
+        timeout-minutes: 10
         working-directory: meshery-cloud
         run: |
           go mod download
@@ -438,13 +445,17 @@ jobs:
     # then `Checkout QA` ran 8m08s and the job hit its own 10m ceiling at
     # 14:22:29 - so a green suite was published as `cancelled`, which is
     # neither pass nor fail. That was this job's own ceiling, not collateral
-    # from the e2e hang in the run beside it.
+    # from the e2e hang in the run beside it. Setup steps carry their own 5-10m
+    # bounds (5x+ their slowest healthy time) so a hung download fails in
+    # minutes; one that hits its bound skips the tests, so it replaces their
+    # time in this budget rather than adding to it.
     timeout-minutes: 35
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Checkout for composite action
+        timeout-minutes: 5
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
@@ -462,6 +473,7 @@ jobs:
 
       #------------------------------------------
       - name: Checkout Cloud code
+        timeout-minutes: 5
         uses: actions/checkout@v7
         with:
           repository: layer5io/meshery-cloud
@@ -487,6 +499,7 @@ jobs:
       #------------------------------------------
       - name: Setup Node.js
         id: setup-node
+        timeout-minutes: 5
         uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node_version }}
@@ -499,8 +512,10 @@ jobs:
         with:
           id: cloud-ui-tests
           message: ":heavy_check_mark: Setup Node.js. Installing dependencies..."
+      # `failure() &&` is required: a bare outcome check is implicitly ANDed
+      # with success(), which is false exactly when this step should post.
       - name: Comment Node setup failure
-        if: steps.setup-node.outcome == 'failure'
+        if: ${{ failure() && steps.setup-node.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-ui-tests
@@ -510,6 +525,7 @@ jobs:
       #------------------------------------------
       - name: Install UI dependencies
         id: install-deps
+        timeout-minutes: 10
         working-directory: meshery-cloud
         run: make ui-setup
 
@@ -520,7 +536,7 @@ jobs:
           id: cloud-ui-tests
           message: ":heavy_check_mark: Installed UI dependencies. Running UI tests..."
       - name: Comment deps failure
-        if: steps.install-deps.outcome == 'failure'
+        if: ${{ failure() && steps.install-deps.outcome == 'failure' }}
         uses: ./.github/actions/cloud-comment
         with:
           id: cloud-ui-tests
@@ -696,13 +712,18 @@ jobs:
     # previous 85 that intent could not actually hold: a full-length test step
     # left 10m, less than the 10m12s a *healthy* QA checkout measured on run
     # 31801494396 - so the steps meant to publish the verdict were the ones the
-    # ceiling cancelled.
+    # ceiling cancelled. Setup steps carry their own 5-10m bounds (5x+ their
+    # slowest healthy time, ~2m in total when healthy) so a hung download fails
+    # in minutes; one that hits its bound skips the test step, so it replaces
+    # the 75m in this budget rather than adding to it. Before those bounds, run
+    # 37973259423 sat 74m in Install Playwright browsers with no test started.
     timeout-minutes: 105
     env:
       GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Checkout for composite action
+        timeout-minutes: 5
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
@@ -719,6 +740,7 @@ jobs:
           recreate: true
 
       - name: Checkout Cloud code
+        timeout-minutes: 5
         uses: actions/checkout@v7
         with:
           repository: layer5io/meshery-cloud
@@ -728,6 +750,7 @@ jobs:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Setup Node.js
+        timeout-minutes: 5
         uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node_version }}
@@ -735,18 +758,63 @@ jobs:
           cache-dependency-path: meshery-cloud/ui/package-lock.json
 
       - name: Install Cloud UI dependencies
+        timeout-minutes: 10
         working-directory: meshery-cloud
         run: make ui-setup
 
+      # The cache only saves the download the next step makes anyway, so a
+      # stalled restore is not worth failing the job over.
       - name: Cache Playwright browsers
+        timeout-minutes: 5
+        continue-on-error: true
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('meshery-cloud/ui/package-lock.json') }}
 
+      # Run 37973259423 hung here for 74m inside the `apt-get update` that
+      # `--with-deps` runs, with no test ever started, holding a Cloud release
+      # behind it until someone cancelled it. Healthy installs take 26-69s
+      # (30 runs measured), so each attempt is capped at 4m and a timeout or
+      # failure is retried once: a transient mirror stall recovers, and a
+      # persistent one fails the step within 10m instead of at the job ceiling.
+      # Between attempts, any apt-get the timed-out attempt left behind is
+      # killed: it runs as root under sudo and can outlive `timeout`'s signal,
+      # and a survivor would hold the apt lock against the retry.
       - name: Install Playwright browsers
+        timeout-minutes: 10
         working-directory: meshery-cloud/ui
-        run: npx playwright install --with-deps
+        shell: bash
+        run: |
+          for attempt in 1 2; do
+            if timeout --kill-after=30s 4m npx playwright install --with-deps; then
+              exit 0
+            else
+              rc=$?
+            fi
+            case "$rc" in
+              124|137) reason="timed out after 4m" ;;
+              *) reason="failed with exit code $rc" ;;
+            esac
+            if [ "$attempt" -eq 1 ]; then
+              echo "::warning::Playwright browser install attempt 1 $reason; retrying once."
+              sudo pkill -KILL -x apt-get || true
+              sleep 10
+            else
+              echo "::error::Playwright browser install attempt 2 $reason; giving up."
+            fi
+          done
+          exit 1
+
+      # A setup step that fails or hits its bound skips the test step, so
+      # neither verdict comment below can fire. Without this the PR comment
+      # would stay at "Starting..." with no sign that nothing ran.
+      - name: Comment e2e setup failure
+        if: failure()
+        uses: ./.github/actions/cloud-comment
+        with:
+          id: cloud-e2e-tests
+          message: ":x: Cloud Playwright e2e setup failed before any test ran. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
 
       # allure-playwright (wired in meshery-cloud/ui/playwright.config.ts by
       # layer5io/meshery-cloud#5846) writes per-test Allure results to
