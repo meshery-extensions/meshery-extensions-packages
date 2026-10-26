@@ -435,6 +435,202 @@ jobs:
 
       #------------------------------------------
 
+  # ---------------------------------------------------------------------------
+  # Custom-domain auth contract, migrated from layer5io/meshery-cloud
+  # (issue #763). It GATES: a failure here fails this reusable workflow, and
+  # therefore the `Meshery Cloud Build` commit status in
+  # meshery-cloud-on-pr.yml, which only goes green when build AND test
+  # succeed.
+  #
+  # It checks out the cloud head exactly like `server-tests` above (PR head
+  # when pr_number is set, else the dispatched SHA) and runs the head's own
+  # Go tests, so the code under test is always the head, never this repo.
+  # The source workflow's pull_request paths filter is preserved as a
+  # changed-files check: on PR runs with no tracked path changed, the Go
+  # steps are skipped. On non-PR runs (master/qa dispatch) the gate always
+  # runs, matching the source's push behavior.
+  # ---------------------------------------------------------------------------
+  custom-domain-contract:
+    name: Custom-domain auth contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      TEST_PATTERN: "TestTenantHydraAuthorizeURL|TestRewriteKratosRedirect|TestIsHydraAuthorizeTarget|TestConsentHandler_|TestPersistUserSession_|TestHydraBrowserProxy_|TestRedirectToHydraForChallenge_"
+      REPORT: ${{ github.workspace }}/head-contract.json
+    steps:
+      - name: Checkout Cloud code
+        timeout-minutes: 5
+        uses: actions/checkout@v7
+        with:
+          repository: layer5io/meshery-cloud
+          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
+          fetch-depth: 1
+          path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Decide whether a tracked path changed
+        id: paths
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: |
+          set -uo pipefail
+          if [ -z "${{ inputs.pr_number }}" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "No PR number: dispatch run, the gate always runs."
+            exit 0
+          fi
+          if ! files="$(gh api "repos/layer5io/meshery-cloud/pulls/${{ inputs.pr_number }}/files" --paginate --jq '.[].filename' 2>/dev/null)"; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Changed-files lookup failed; running the gate rather than skipping it."
+            exit 0
+          fi
+          if printf '%s\n' "$files" | grep -Eq '^(ui/e2e/auth/custom-domain-|ui/e2e/auth/oauth-signin-matrix\.spec\.ts|ui/e2e/auth/oauth-link-academy\.spec\.ts|ui/e2e/auth/academy-enroll-deeplink\.spec\.ts|ui/e2e/auth/oauth-deeplink-entry\.spec\.ts|ui/e2e/helpers/(custom-domain-auth|oauth-targets|oauth-credentials|oidc-start-contract|live-tiers|live-preconditions)\.ts|\.github/scripts/assert-playwright-coverage\.js|ui/e2e/scripts/expected-custom-domain-cells\.ts|ui/e2e/global-setup\.ts|ui/playwright\.config\.ts|server/handlers/(hydra_browser_proxy|auth_flow_continue|flow_emails|auth_flow|auth|kratos|oidc)\.go|server/domain_routing/|server/router/router\.go|server/handlers/(custom_domain_hydra_leg_test|hydra_browser_proxy_test|auth_flow_test|auth_test|oidc_first_login_test)\.go|go\.mod|go\.sum)'; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "A tracked path changed; running the gate."
+          else
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "No tracked path changed; skipping the gate."
+          fi
+
+      - name: Setup Go
+        id: setup-go
+        if: ${{ steps.paths.outputs.needed == 'true' }}
+        timeout-minutes: 5
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: meshery-cloud/go.mod
+          cache: true
+          cache-dependency-path: meshery-cloud/go.sum
+
+      # `-json` is machine-readable and unreadable to a human, so the stream
+      # is tee'd to the report and every event CARRYING text is replayed to
+      # the log. PIPESTATUS carries go test's own verdict past the pipe.
+      # The filter selects on `.Output != null`, NOT on `.Action == "output"`,
+      # because since Go 1.24 a compile failure arrives as `build-output`
+      # followed by `build-fail`, neither of which is an `output` action.
+      - name: Assert the authorize-emitter contract against this head
+        if: ${{ steps.paths.outputs.needed == 'true' }}
+        working-directory: meshery-cloud
+        run: |
+          set -uo pipefail
+          go test ./server/handlers/ -run "${TEST_PATTERN}" -count=1 -json \
+            | tee "${REPORT}" \
+            | jq -j 'select(.Output != null) | .Output'
+          exit "${PIPESTATUS[0]}"
+
+      # `go test` exits 0 when a `-run` pattern matches NOTHING ("no tests to
+      # run"), so a renamed test silently empties the gate while the job stays
+      # green. The floor catches wholesale shrinkage; the named set catches
+      # the subtler shape where the pattern still matches plenty but no
+      # longer reaches an emitter. `!cancelled()` rather than the implicit
+      # `success()`, because this step's whole job is to report WHICH
+      # emitters went uncovered when the go test step above went red.
+      - name: Fail if the gate stopped covering the emitters
+        if: ${{ !cancelled() && steps.paths.outputs.needed == 'true' && steps.setup-go.conclusion == 'success' }}
+        run: |
+          set -euo pipefail
+          if [ ! -s "${REPORT}" ]; then
+            echo "::error::No go test report at ${REPORT} - the gate did not run."
+            exit 1
+          fi
+
+          # A build failure has to be answered BEFORE the emitter set, because
+          # every counter below requires `.Test != null` and a BuildEvent has
+          # no `.Test`: an uncompilable package therefore reads as 0 passed, 0
+          # failed and every emitter "uncovered", and the message would tell
+          # the reader a test was renamed when nothing was.
+          build_failed=$(jq -s '[.[] | select(.Action == "build-fail")] | length' "${REPORT}")
+          if [ "${build_failed}" -ne 0 ]; then
+            echo "::error::server/handlers (or a package it imports) did not COMPILE, so this gate" \
+                 "ran no tests. The compiler diagnostic is replayed in the step above. This is a" \
+                 "build failure, not lost emitter coverage - no test was renamed and nothing shrank."
+            exit 1
+          fi
+
+          passed=$(jq -s '[.[] | select(.Action == "pass" and .Test != null)] | length' "${REPORT}")
+          failed=$(jq -s '[.[] | select(.Action == "fail" and .Test != null)] | length' "${REPORT}")
+          skipped=$(jq -s '[.[] | select(.Action == "skip" and .Test != null)] | length' "${REPORT}")
+          echo "head contract: ${passed} passed, ${failed} failed, ${skipped} skipped"
+
+          # One per browser-visible emitter, plus the two controls that prove
+          # the assertion can tell re-anchored from not. Every name must have
+          # PASSED, not merely appeared.
+          required="TestRedirectToHydraForChallenge_UsesTenantAnchoredAuthorizeURL
+          TestRewriteKratosRedirect_VerifierHopMovesToProxyPath
+          TestPersistUserSession_AnchorsLoginVerifierOnTenantHost
+          TestConsentHandler_AnchorsConsentVerifierOnTenantHost
+          TestRedirectToHydraForChallenge_CanonicalHostUnchanged
+          TestTenantHydraAuthorizeURL_FailsClosedWithoutRegistry"
+          failed_required=""
+          skipped_required=""
+          absent_required=""
+          for name in ${required}; do
+            if jq -e -s --arg n "${name}" \
+              'any(.[]; .Action == "pass" and .Test == $n)' "${REPORT}" > /dev/null; then
+              continue
+            fi
+            if jq -e -s --arg n "${name}" \
+              'any(.[]; .Action == "fail" and .Test == $n)' "${REPORT}" > /dev/null; then
+              failed_required="${failed_required} ${name}"
+            elif jq -e -s --arg n "${name}" \
+              'any(.[]; .Action == "skip" and .Test == $n)' "${REPORT}" > /dev/null; then
+              skipped_required="${skipped_required} ${name}"
+            else
+              absent_required="${absent_required} ${name}"
+            fi
+          done
+
+          contract_broken=0
+
+          if [ "${failed}" -ne 0 ]; then
+            if [ -n "${failed_required}" ]; then
+              echo "::error::${failed} head-contract assertion(s) FAILED, among them these" \
+                   "browser-visible Hydra authorize emitters:${failed_required}." \
+                   "These tests ran and disagreed with what the handlers emit, so do not touch" \
+                   "TEST_PATTERN or the required list on their account."
+            else
+              echo "::error::${failed} head-contract assertion(s) FAILED, none of which is a named" \
+                   "emitter assertion - read the go test output above for which tests they are." \
+                   "Any emitter that ALSO stopped being covered is reported on its own line below."
+            fi
+            contract_broken=1
+          fi
+
+          if [ -n "${absent_required}" ]; then
+            echo "::error::The head-gating contract observed NO RESULT AT ALL - no pass, no fail," \
+                 "no skip - for:${absent_required}. These did not run: renamed, deleted, or no" \
+                 "longer matched by TEST_PATTERN. Each names one browser-visible Hydra authorize" \
+                 "emitter (or a control that proves the assertion discriminates). Update" \
+                 "TEST_PATTERN and this list together - a gate that silently stops covering an" \
+                 "emitter is how the contract shipped unverified in the first place."
+            contract_broken=1
+          fi
+
+          if [ -n "${skipped_required}" ]; then
+            echo "::error::These required emitter assertions were SKIPPED rather than executed:" \
+                 "${skipped_required}. A skip reads as a pass in every CI summary; this gate covers" \
+                 "an emitter only when its test actually runs."
+            contract_broken=1
+          fi
+
+          if [ "${contract_broken}" -ne 0 ]; then
+            exit 1
+          fi
+
+          # A CATASTROPHIC-SHRINK BACKSTOP, not a coverage measure. It is
+          # deliberately far below the ~111 results TEST_PATTERN currently
+          # produces, because those come from FIVE test files and
+          # consolidating any one of them is legitimate refactoring, not
+          # shrinkage. A tight floor would turn that into a red job reporting
+          # "it must never silently shrink" while every emitter stayed covered.
+          if [ "${passed}" -lt 40 ]; then
+            echo "::error::The head-gating contract produced only ${passed} passing results," \
+                 "far below the ~111 this pattern normally yields, with nothing failed, skipped or" \
+                 "missing. That is a collapsed suite, not a refactor - a gate that runs nothing" \
+                 "reads as a pass."
+            exit 1
+          fi
+
   ui-tests:
     name: UI Tests
     runs-on: ubuntu-24.04

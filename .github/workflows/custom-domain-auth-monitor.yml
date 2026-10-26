@@ -1,0 +1,227 @@
+# Deployed custom-domain auth monitor, migrated from layer5io/meshery-cloud
+# (issue #763). It probes the DEPLOYED tenant roster over the public
+# internet, so it reports on production, never on a head - which is why it
+# has NO pull request trigger. A production outage must not be reported as
+# a PR's fault, and a PR cannot turn these probes green or red, so running
+# it per PR was pure minutes. It runs on a schedule and on manual
+# dispatch, and unlike its pull-request form it fails for real: on a
+# schedule the question really is "is the deployment still correct?".
+#
+# It carries THREE tiers, all CREDENTIAL-FREE: the custom-domain Hydra
+# legs (TC-104..108, plus the Kratos legs), the OAuth redirect contract
+# (36 cells in the source file's count: 8 /oidc/start, 8 academy-entry, 4
+# enroll-entry, plus the deep-link entry tier at floor 16). The
+# session-writing tier stays out of CI exactly as before: it needs a
+# credential and a non-production target, and runs only from local
+# `make` targets. Every request here is an unauthenticated GET, the same
+# ones a visitor's browser issues opening the sign-in page, so nothing is
+# created, mutated or deleted.
+#
+# Only `deployed-monitor` leaves the runner, and only the cloud checkout
+# below leaves this repo: the specs and helpers come from
+# layer5io/meshery-cloud at master, sparse-checked out (ui/ plus
+# .github/scripts/) per this repo's sparse-checkout rule for large
+# checkouts. The roster resolver reads the configured roster, never the
+# report it is about to judge, so a collapsed roster cannot predict the
+# nothing it ran.
+
+name: Custom-domain auth monitor
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: custom-domain-auth-monitor
+  cancel-in-progress: false
+
+jobs:
+  deployed-monitor:
+    name: deployed tenant contract (monitor)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: layer5io/meshery-cloud
+          ref: master
+          fetch-depth: 1
+          sparse-checkout: |
+            ui
+            .github/scripts
+          sparse-checkout-cone-mode: false
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.x"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      # Ided so every probe below can depend on them explicitly. The probes
+      # are independent OF EACH OTHER but not of setup: without node_modules
+      # or a browser there is nothing to probe with, and three `npx
+      # playwright test` runs against an empty checkout turn one
+      # infrastructure failure into six errors, none of which names the
+      # cause.
+      - name: Install UI dependencies
+        id: install-deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Playwright chromium
+        id: install-browser
+        run: npx playwright install --with-deps chromium
+
+      # PLAYWRIGHT_SKIP_WEBSERVER is correct here BECAUSE this job is a
+      # monitor: the specs address deployed hosts by name and never touch
+      # localhost, so building the static export would be pure cost.
+      #
+      # ONE run, two reporters. `list` is what a human reads in the log;
+      # the JSON is what the next step counts. The JSON goes to a FILE via
+      # PLAYWRIGHT_JSON_OUTPUT_NAME rather than to stdout: `globalSetup`
+      # prints a credential-presence line, so a `--reporter=json > file`
+      # redirect captures that line first and the file is then not valid
+      # JSON. CUSTOM_DOMAIN_E2E_REQUIRE_CONTRACT ARMS the tier, and this
+      # job cannot work without it: the tier addresses deployed hosts, so
+      # it is opt-in and its spec file is not collected otherwise. Drop
+      # this line and the job runs ZERO tests, which is exactly the hollow
+      # green this workflow exists to stop.
+      - name: Probe the deployed custom-domain contract
+        id: contract
+        if: ${{ !cancelled() && steps.install-deps.conclusion == 'success' && steps.install-browser.conclusion == 'success' }}
+        env:
+          PLAYWRIGHT_SKIP_WEBSERVER: "1"
+          CUSTOM_DOMAIN_E2E_REQUIRE_CONTRACT: "1"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/custom-domain-contract.json
+        # BOTH spec files, one invocation: the tier is one contract ("a
+        # browser-visible auth hop stays on the tenant host") with a Hydra
+        # half and a Kratos half, and the --expect count below spans both.
+        run: |
+          npx playwright test \
+            e2e/auth/custom-domain-hydra-legs.spec.ts \
+            e2e/auth/custom-domain-kratos-flow-legs.spec.ts \
+            --reporter=list,json
+
+      # A skipped spec is indistinguishable from a passing one in the
+      # summary line. The step above already fails on a failing assertion;
+      # this one catches the quieter shape - a tier that ran but executed
+      # (almost) nothing, e.g. because the arm key above was dropped, the
+      # host matrix resolved empty, or a `test.skip` crept in.
+      #
+      # Unlike this job's other two tiers, the custom-domain tier's size is
+      # a property of the DEPLOYMENT, not of the code: its hosts are
+      # env-overridable per cell and deduplicated by host, so a roster of
+      # T tenants yields `5T + 4` cells across its two spec files. A
+      # constant floor cannot express that, so the expectation is RESOLVED
+      # FROM THE CONFIGURED ROSTER instead, in its own step, and asserted
+      # for equality. It reads the env-supplied hosts, never the report it
+      # is about to judge, and an empty roster is not predicted for at
+      # all: the resolver exits 1 naming the overrides that emptied it.
+      - name: Resolve the expected custom-domain cell count
+        id: contract-expectation
+        if: ${{ !cancelled() && steps.install-deps.conclusion == 'success' && steps.install-browser.conclusion == 'success' }}
+        run: |
+          expected="$(npx ts-node --transpile-only \
+            --compiler-options '{"module":"commonjs","moduleResolution":"node"}' \
+            e2e/scripts/expected-custom-domain-cells.ts)"
+          echo "expected=$expected" >> "$GITHUB_OUTPUT"
+          echo "the configured tenant roster predicts $expected executed cells"
+
+      - name: Fail if the custom-domain monitor executed a different number of cases
+        if: ${{ !cancelled() && steps.contract-expectation.conclusion == 'success' }}
+        run: |
+          node ../.github/scripts/assert-playwright-coverage.js \
+            --report "${{ runner.temp }}/custom-domain-contract.json" \
+            --expect "${{ steps.contract-expectation.outputs.expected }}" \
+            --label "deployed custom-domain contract" \
+            --arm-key CUSTOM_DOMAIN_E2E_REQUIRE_CONTRACT
+
+      # THE CREDENTIAL-FREE DEPLOYED CELLS.
+      #
+      # NONE of these needs a credential. `-g "redirect contract"` is a
+      # tier SELECTION, not a skip: it picks the credential-free cells out
+      # of the two files that also carry session-writing ones, and leaves
+      # those uncollected. The session-writing cells now FAIL rather than
+      # skip when a credential is absent, so collecting them in a job with
+      # no crew account would redden the monitor for a configuration gap
+      # it is not here to report.
+      #
+      # Every probe and assertion step below carries the same condition,
+      # and it says two things at once. `!cancelled()` overrides the
+      # implicit `success()`, so the tiers are independent OF EACH OTHER,
+      # and a red custom-domain probe must not silently discard the OAuth
+      # result. The two `steps.install-*.conclusion` conjuncts keep them
+      # dependent on SETUP: a failed `npm ci` must produce ONE error
+      # naming itself, not six probe and assertion errors describing its
+      # consequences.
+      - name: Probe the deployed OAuth redirect contract
+        id: oauth-contract
+        if: ${{ !cancelled() && steps.install-deps.conclusion == 'success' && steps.install-browser.conclusion == 'success' }}
+        env:
+          PLAYWRIGHT_SKIP_WEBSERVER: "1"
+          OAUTH_E2E_REQUIRE_LIVE: "1"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/oauth-redirect-contract.json
+        run: |
+          npx playwright test \
+            e2e/auth/oauth-signin-matrix.spec.ts \
+            e2e/auth/oauth-link-academy.spec.ts \
+            e2e/auth/academy-enroll-deeplink.spec.ts \
+            -g "redirect contract" --reporter=list,json
+
+      # 20 is the exact current count and the floor is set at it: 8
+      # `/oidc/start` cells ({canonical, on-eTLD non-BYOC, off-eTLD
+      # non-BYOC, off-eTLD BYOC} x {GitHub, Google}), 8 academy-entry cells
+      # over the same matrix, and 4 enroll-entry cells (one per host).
+      # Unlike the custom-domain tenant roster this matrix has a fixed
+      # shape, so any shrink is a lost cell rather than a different
+      # deployment.
+      - name: Fail if the OAuth redirect monitor executed fewer cases than expected
+        if: ${{ !cancelled() && steps.install-deps.conclusion == 'success' && steps.install-browser.conclusion == 'success' }}
+        run: |
+          node ../.github/scripts/assert-playwright-coverage.js \
+            --report "${{ runner.temp }}/oauth-redirect-contract.json" \
+            --floor 20 \
+            --label "deployed OAuth redirect contract" \
+            --arm-key OAUTH_E2E_REQUIRE_LIVE
+
+      # Its own step because its titles do not carry the "redirect
+      # contract" phrase and the whole file is credential-free, so there
+      # is nothing to select out of it. Its header records that it was
+      # written to catch a defect the /oidc/start matrix ran green over
+      # for a month - which is precisely why it must not be the one tier
+      # left running nowhere.
+      - name: Probe the deployed deep-link entry contract
+        id: deeplink-contract
+        if: ${{ !cancelled() && steps.install-deps.conclusion == 'success' && steps.install-browser.conclusion == 'success' }}
+        env:
+          PLAYWRIGHT_SKIP_WEBSERVER: "1"
+          OAUTH_E2E_REQUIRE_LIVE: "1"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/deeplink-entry-contract.json
+        run: npx playwright test e2e/auth/oauth-deeplink-entry.spec.ts --reporter=list,json
+
+      # 16: per host, one deep-link entry cell plus one per provider, plus
+      # a bare-/login control - (1 + 2 + 1) x 4 hosts.
+      - name: Fail if the deep-link entry monitor executed fewer cases than expected
+        if: ${{ !cancelled() && steps.install-deps.conclusion == 'success' && steps.install-browser.conclusion == 'success' }}
+        run: |
+          node ../.github/scripts/assert-playwright-coverage.js \
+            --report "${{ runner.temp }}/deeplink-entry-contract.json" \
+            --floor 16 \
+            --label "deployed deep-link entry contract" \
+            --arm-key OAUTH_E2E_REQUIRE_LIVE
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: custom-domain-auth-traces
+          path: ui/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
