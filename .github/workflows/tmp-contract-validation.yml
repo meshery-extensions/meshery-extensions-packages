@@ -1,0 +1,146 @@
+# TEMPORARY validation workflow for issue #763. It duplicates the
+# custom-domain-contract job from meshery-cloud-test-reusable.yml so the
+# job can be dispatched in isolation, without running the full test
+# reusable (whose server-tests job syncs results to the qa branch and
+# posts PR comments). DELETE THIS FILE before merging the migration PR.
+# It is never meant to run on a schedule or a pull request.
+
+name: Temp contract validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_commit_sha:
+        description: "Git commit SHA to checkout for testing"
+        required: true
+        type: string
+      pr_number:
+        description: "PR number for comment updates (leave empty for a dispatch run)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  custom-domain-contract:
+    name: Custom-domain auth contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      TEST_PATTERN: "TestTenantHydraAuthorizeURL|TestRewriteKratosRedirect|TestIsHydraAuthorizeTarget|TestConsentHandler_|TestPersistUserSession_|TestHydraBrowserProxy_|TestRedirectToHydraForChallenge_"
+      REPORT: ${{ github.workspace }}/head-contract.json
+    steps:
+      - name: Checkout Cloud code
+        timeout-minutes: 5
+        uses: actions/checkout@v7
+        with:
+          repository: layer5io/meshery-cloud
+          ref: ${{ inputs.pr_number != '' && format('refs/pull/{0}/head', inputs.pr_number) || inputs.pr_commit_sha }}
+          fetch-depth: 1
+          path: meshery-cloud
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Decide whether a tracked path changed
+        id: paths
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: |
+          set -uo pipefail
+          if [ -z "${{ inputs.pr_number }}" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "No PR number: dispatch run, the gate always runs."
+            exit 0
+          fi
+          if ! files="$(gh api "repos/layer5io/meshery-cloud/pulls/${{ inputs.pr_number }}/files" --paginate --jq '.[].filename' 2>/dev/null)"; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Changed-files lookup failed; running the gate rather than skipping it."
+            exit 0
+          fi
+          if printf '%s\n' "$files" | grep -Eq '^(ui/e2e/auth/custom-domain-|ui/e2e/auth/oauth-signin-matrix\.spec\.ts|ui/e2e/auth/oauth-link-academy\.spec\.ts|ui/e2e/auth/academy-enroll-deeplink\.spec\.ts|ui/e2e/auth/oauth-deeplink-entry\.spec\.ts|ui/e2e/helpers/(custom-domain-auth|oauth-targets|oauth-credentials|oidc-start-contract|live-tiers|live-preconditions)\.ts|\.github/scripts/assert-playwright-coverage\.js|ui/e2e/scripts/expected-custom-domain-cells\.ts|ui/e2e/global-setup\.ts|ui/playwright\.config\.ts|server/handlers/(hydra_browser_proxy|auth_flow_continue|flow_emails|auth_flow|auth|kratos|oidc)\.go|server/domain_routing/|server/router/router\.go|server/handlers/(custom_domain_hydra_leg_test|hydra_browser_proxy_test|auth_flow_test|auth_test|oidc_first_login_test)\.go|go\.mod|go\.sum)'; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "A tracked path changed; running the gate."
+          else
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "No tracked path changed; skipping the gate."
+          fi
+
+      - name: Setup Go
+        id: setup-go
+        if: ${{ steps.paths.outputs.needed == 'true' }}
+        timeout-minutes: 5
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: meshery-cloud/go.mod
+          cache: true
+          cache-dependency-path: meshery-cloud/go.sum
+
+      - name: Assert the authorize-emitter contract against this head
+        if: ${{ steps.paths.outputs.needed == 'true' }}
+        working-directory: meshery-cloud
+        run: |
+          set -uo pipefail
+          go test ./server/handlers/ -run "${TEST_PATTERN}" -count=1 -json \
+            | tee "${REPORT}" \
+            | jq -j 'select(.Output != null) | .Output'
+          exit "${PIPESTATUS[0]}"
+
+      - name: Fail if the gate stopped covering the emitters
+        if: ${{ !cancelled() && steps.paths.outputs.needed == 'true' && steps.setup-go.conclusion == 'success' }}
+        run: |
+          set -euo pipefail
+          if [ ! -s "${REPORT}" ]; then
+            echo "::error::No go test report at ${REPORT} - the gate did not run."
+            exit 1
+          fi
+          build_failed=$(jq -s '[.[] | select(.Action == "build-fail")] | length' "${REPORT}")
+          if [ "${build_failed}" -ne 0 ]; then
+            echo "::error::server/handlers (or a package it imports) did not COMPILE, so this gate ran no tests."
+            exit 1
+          fi
+          passed=$(jq -s '[.[] | select(.Action == "pass" and .Test != null)] | length' "${REPORT}")
+          failed=$(jq -s '[.[] | select(.Action == "fail" and .Test != null)] | length' "${REPORT}")
+          skipped=$(jq -s '[.[] | select(.Action == "skip" and .Test != null)] | length' "${REPORT}")
+          echo "head contract: ${passed} passed, ${failed} failed, ${skipped} skipped"
+          required="TestRedirectToHydraForChallenge_UsesTenantAnchoredAuthorizeURL
+          TestRewriteKratosRedirect_VerifierHopMovesToProxyPath
+          TestPersistUserSession_AnchorsLoginVerifierOnTenantHost
+          TestConsentHandler_AnchorsConsentVerifierOnTenantHost
+          TestRedirectToHydraForChallenge_CanonicalHostUnchanged
+          TestTenantHydraAuthorizeURL_FailsClosedWithoutRegistry"
+          failed_required=""
+          skipped_required=""
+          absent_required=""
+          for name in ${required}; do
+            if jq -e -s --arg n "${name}" 'any(.[]; .Action == "pass" and .Test == $n)' "${REPORT}" > /dev/null; then
+              continue
+            fi
+            if jq -e -s --arg n "${name}" 'any(.[]; .Action == "fail" and .Test == $n)' "${REPORT}" > /dev/null; then
+              failed_required="${failed_required} ${name}"
+            elif jq -e -s --arg n "${name}" 'any(.[]; .Action == "skip" and .Test == $n)' "${REPORT}" > /dev/null; then
+              skipped_required="${skipped_required} ${name}"
+            else
+              absent_required="${absent_required} ${name}"
+            fi
+          done
+          contract_broken=0
+          if [ "${failed}" -ne 0 ]; then
+            echo "::error::${failed} head-contract assertion(s) FAILED."
+            contract_broken=1
+          fi
+          if [ -n "${absent_required}" ]; then
+            echo "::error::No result at all for:${absent_required}."
+            contract_broken=1
+          fi
+          if [ -n "${skipped_required}" ]; then
+            echo "::error::Skipped rather than executed:${skipped_required}."
+            contract_broken=1
+          fi
+          if [ "${contract_broken}" -ne 0 ]; then
+            exit 1
+          fi
+          if [ "${passed}" -lt 40 ]; then
+            echo "::error::Only ${passed} passing results, far below the ~111 this pattern normally yields."
+            exit 1
+          fi
