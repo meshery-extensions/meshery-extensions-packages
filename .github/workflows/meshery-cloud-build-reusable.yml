@@ -113,6 +113,21 @@ jobs:
         with:
           message: ":x: Failed to checkout Cloud repo."
 
+      # Immutable image tag for this exact PR commit: pr-<number>-<shortsha>.
+      # Taken from the commit actually checked out, so the tag always names
+      # what was built. Each push to the PR builds and deploys a fresh tag.
+      - name: Compute image tag
+        working-directory: ./meshery-cloud
+        run: |
+          set -euo pipefail
+          if ! [[ "${PR_NUMBER}" =~ ^[0-9]+$ ]]; then
+            echo "::error::pr_number must be numeric, got '${PR_NUMBER}'"
+            exit 1
+          fi
+          image_tag="pr-${PR_NUMBER}-$(git rev-parse --short=7 HEAD)"
+          echo "IMAGE_TAG=${image_tag}" >> "$GITHUB_ENV"
+          echo "Image tag: ${image_tag}"
+
       # All tests (unit, integration, Jest, Playwright e2e) run in
       # meshery-cloud-test-reusable.yml so they parallelize with image
       # build + deploy. This workflow is pure build + deploy.
@@ -151,13 +166,12 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: layer5/meshery-cloud
+          # Never push `latest` from a PR build: `latest` is the newest
+          # production release only.
           flavor: |
-            latest=true
+            latest=false
           tags: |
-            type=raw,value=staging-{{sha}}
-            type=raw,value=staging-${{env.PR_NUMBER}}
-            type=raw,value=staging-latest
-            type=raw,value=staging-${{env.GIT_VERSION}}
+            type=raw,value=${{ env.IMAGE_TAG }}
       - name: comment success
         if: success()
         uses: ./.github/actions/cloud-comment
@@ -217,13 +231,14 @@ jobs:
         uses: appleboy/ssh-action@master
         env:
             PR_NUMBER: ${{env.PR_NUMBER}}
+            IMAGE_TAG: ${{env.IMAGE_TAG}}
             GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
         with:
           host: ${{ secrets.OCI_BASTION_HOST }}
           username: ${{ secrets.OCI_BASTION_USERNAME }}
           key: ${{ secrets.OCI_BASTION_KEY }}
           port: 22
-          envs: PR_NUMBER
+          envs: PR_NUMBER,IMAGE_TAG
           # This script will exit immediately if any command fails.
           # Alternate sync operation: git pull https://l5io:$GH_ACCESS_TOKEN@github.com/layer5io/meshery-cloud.git master
           script: |
@@ -234,7 +249,7 @@ jobs:
             gh repo sync
             cd ../..
             kubectl config use-context staging 
-            helm upgrade -f ~/deploy/meshery-cloud/install/environment/staging/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n staging --set=image.tag=staging-$PR_NUMBER --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl            
+            helm upgrade -f ~/deploy/meshery-cloud/install/environment/staging/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n staging --set=image.tag=$IMAGE_TAG --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl            
       - name: comment success
         if: success()
         uses: ./.github/actions/cloud-comment
