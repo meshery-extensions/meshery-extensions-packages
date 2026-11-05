@@ -37,11 +37,58 @@ jobs:
   # internal-site-deploy.yml on THIS public repo (billing identity = packages).
   # Private meshery-cloud must emit repository_dispatch here; do not
   # workflow_call this from a private caller.
-  deploy-internal-site:
+  deploy-internal-site-guard:
     if: ${{ github.event.action == 'deploy-internal-site' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      cloud_ref: ${{ steps.v.outputs.cloud_ref }}
+      extensions_ref: ${{ steps.v.outputs.extensions_ref }}
+      dry_run: ${{ steps.v.outputs.dry_run }}
+    steps:
+      - name: Trusted sender and allowlisted refs
+        id: v
+        env:
+          ACTOR: ${{ github.actor }}
+          CLOUD_REF: ${{ github.event.client_payload.cloud_ref || 'master' }}
+          EXTENSIONS_REF: ${{ github.event.client_payload.extensions_ref || 'master' }}
+          DRY_RUN: ${{ github.event.client_payload.dry_run || false }}
+        run: |
+          # Actors that may fire repository_dispatch for this event. Expand only with owner approval.
+          case "$ACTOR" in
+            leecalcote|github-actions[bot]|meshery-ci|layer5-bot) ;;
+            *)
+              echo "::error::Untrusted actor '$ACTOR' for deploy-internal-site."
+              exit 1
+              ;;
+          esac
+          allow_ref() {
+            local name="$1" val="$2"
+            if [[ "$val" =~ ^(master|main)$ ]]; then return 0; fi
+            if [[ "$val" =~ ^[0-9a-f]{40}$ ]]; then return 0; fi
+            echo "::error::$name='$val' is not an allowlisted ref (master|main|40-char SHA)."
+            exit 1
+          }
+          allow_ref CLOUD_REF "$CLOUD_REF"
+          allow_ref EXTENSIONS_REF "$EXTENSIONS_REF"
+          # Normalize dry_run to boolean string for workflow_call
+          case "$DRY_RUN" in
+            true|True|TRUE|1) DRY_RUN=true ;;
+            *) DRY_RUN=false ;;
+          esac
+          {
+            echo "cloud_ref=$CLOUD_REF"
+            echo "extensions_ref=$EXTENSIONS_REF"
+            echo "dry_run=$DRY_RUN"
+          } >> "$GITHUB_OUTPUT"
+          echo "actor=$ACTOR ok"
+
+  deploy-internal-site:
+    needs: deploy-internal-site-guard
+    if: ${{ github.event.action == 'deploy-internal-site' && needs.deploy-internal-site-guard.result == 'success' }}
     uses: ./.github/workflows/internal-site-deploy.yml
     with:
-      cloud_ref: ${{ github.event.client_payload.cloud_ref || 'master' }}
-      extensions_ref: ${{ github.event.client_payload.extensions_ref || 'master' }}
-      dry_run: ${{ github.event.client_payload.dry_run || false }}
+      cloud_ref: ${{ needs.deploy-internal-site-guard.outputs.cloud_ref }}
+      extensions_ref: ${{ needs.deploy-internal-site-guard.outputs.extensions_ref }}
+      dry_run: ${{ needs.deploy-internal-site-guard.outputs.dry_run == 'true' }}
     secrets: inherit

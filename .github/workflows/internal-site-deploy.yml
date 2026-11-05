@@ -111,6 +111,24 @@ jobs:
             exit 1
           fi
 
+
+      - name: Allowlist cloud_ref and extensions_ref
+        env:
+          CLOUD_REF: ${{ env.CLOUD_REF }}
+          EXTENSIONS_REF: ${{ env.EXTENSIONS_REF }}
+        run: |
+          # Only default-branch names or full 40-char SHAs. No PR heads, forks, or tags.
+          allow_ref() {
+            local name="$1" val="$2"
+            if [[ "$val" =~ ^(master|main)$ ]]; then return 0; fi
+            if [[ "$val" =~ ^[0-9a-f]{40}$ ]]; then return 0; fi
+            echo "::error::$name='$val' is not an allowlisted ref (master|main|40-char SHA)."
+            exit 1
+          }
+          allow_ref CLOUD_REF "$CLOUD_REF"
+          allow_ref EXTENSIONS_REF "$EXTENSIONS_REF"
+          echo "refs ok cloud=$CLOUD_REF extensions=$EXTENSIONS_REF"
+
       # Tooling only (Makefile/scripts/worker config). No docs/ yet.
       - name: Check out meshery-cloud internal-site tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
