@@ -32,3 +32,16 @@ jobs:
       OCI_BASTION_KEY: ${{ secrets.OCI_BASTION_KEY }}
       MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
       MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+
+  # Internal docs site: heavy Access/Hugo/Wrangler work stays in
+  # internal-site-deploy.yml on THIS public repo (billing identity = packages).
+  # Private meshery-cloud must emit repository_dispatch here; do not
+  # workflow_call this from a private caller.
+  deploy-internal-site:
+    if: ${{ github.event.action == 'deploy-internal-site' }}
+    uses: ./.github/workflows/internal-site-deploy.yml
+    with:
+      cloud_ref: ${{ github.event.client_payload.cloud_ref || 'master' }}
+      extensions_ref: ${{ github.event.client_payload.extensions_ref || 'master' }}
+      dry_run: ${{ github.event.client_payload.dry_run || false }}
+    secrets: inherit
