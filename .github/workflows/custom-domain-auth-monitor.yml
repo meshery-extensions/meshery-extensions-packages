@@ -128,9 +128,7 @@ jobs:
         id: contract-expectation
         if: ${{ !cancelled() && steps.install-deps.conclusion == 'success' && steps.install-browser.conclusion == 'success' }}
         run: |
-          expected="$(npx ts-node --transpile-only \
-            --compiler-options '{"module":"commonjs","moduleResolution":"node"}' \
-            e2e/scripts/expected-custom-domain-cells.ts)"
+          expected="$(npx --yes tsx e2e/scripts/expected-custom-domain-cells.ts)"
           echo "expected=$expected" >> "$GITHUB_OUTPUT"
           echo "the configured tenant roster predicts $expected executed cells"
 
