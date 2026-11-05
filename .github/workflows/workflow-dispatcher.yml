@@ -56,7 +56,7 @@ jobs:
         run: |
           # Actors that may fire repository_dispatch for this event. Expand only with owner approval.
           case "$ACTOR" in
-            leecalcote|github-actions[bot]|meshery-ci|layer5-bot) ;;
+            leecalcote|"github-actions[bot]"|meshery-ci|layer5-bot) ;;
             *)
               echo "::error::Untrusted actor '$ACTOR' for deploy-internal-site."
               exit 1
