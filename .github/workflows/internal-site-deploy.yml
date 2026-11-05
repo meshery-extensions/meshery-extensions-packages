@@ -76,9 +76,8 @@ jobs:
       name: internal-site
       url: https://internal.layer5.io/
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      INTERNAL_ACCESS_EXTRA_EMAILS: ${{ secrets.INTERNAL_ACCESS_EXTRA_EMAILS }}
+      # Cloudflare secrets are NOT job-level: each is scoped to the steps
+      # that need it, so setup/install/build steps never see them.
       HAS_EXT_KEY: ${{ secrets.MESHERY_EXTENSIONS_INTERNAL_READ_KEY != '' }}
       HAS_CLOUD_KEY: ${{ secrets.MESHERY_CLOUD_INTERNAL_READ_KEY != '' }}
       CLOUD_REF: ${{ inputs.cloud_ref || github.event.client_payload.cloud_ref || 'master' }}
@@ -99,6 +98,10 @@ jobs:
           }
 
       - name: Check credentials are configured
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          INTERNAL_ACCESS_EXTRA_EMAILS: ${{ secrets.INTERNAL_ACCESS_EXTRA_EMAILS }}
         run: |
           missing=()
           [ -n "$CLOUDFLARE_API_TOKEN" ] || missing+=(CLOUDFLARE_API_TOKEN)
@@ -143,9 +146,16 @@ jobs:
             internal-site
 
       - name: Check Cloudflare API token permissions
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: make -C cloud/internal-site site-internal-access-check
 
       - name: Create or update the Cloudflare Access application (default-deny)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          INTERNAL_ACCESS_EXTRA_EMAILS: ${{ secrets.INTERNAL_ACCESS_EXTRA_EMAILS }}
         run: make -C cloud/internal-site site-internal-access
 
       # Docs after Access is confirmed default-deny.
@@ -210,10 +220,16 @@ jobs:
 
       - name: Deploy to the layer5-internal Worker
         if: env.DRY_RUN != 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: make -C cloud/internal-site site-internal-worker-deploy
 
       - name: Verify unauthenticated requests get the Access login
         if: env.DRY_RUN != 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
             set +e
