@@ -238,15 +238,25 @@ jobs:
           username: ${{ secrets.OCI_BASTION_USERNAME }}
           key: ${{ secrets.OCI_BASTION_KEY }}
           port: 22
-          envs: PR_NUMBER,IMAGE_TAG
+          envs: PR_NUMBER,IMAGE_TAG,GH_ACCESS_TOKEN
           # This script will exit immediately if any command fails.
-          # Alternate sync operation: git pull https://l5io:$GH_ACCESS_TOKEN@github.com/layer5io/meshery-cloud.git master
+          # The checkout is moved to layer5io/meshery-cloud master by URL, as the
+          # production deploy does, so it never depends on the remotes or gh auth
+          # of the checkout on the deploy host. A checkout with local changes fails
+          # the deploy rather than deploying a modified tree (see #779).
           script: |
             bash
             set -e 
             helm repo update layer5
             cd deploy/meshery-cloud
-            gh repo sync
+            if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+              echo "deploy/meshery-cloud has local changes; refusing to deploy a modified checkout:"
+              git status --short --untracked-files=no
+              exit 1
+            fi
+            git fetch "https://l5io:${GH_ACCESS_TOKEN}@github.com/layer5io/meshery-cloud.git" master
+            git checkout -B master FETCH_HEAD
+            git log -1 --oneline
             cd ../..
             kubectl config use-context staging 
             helm upgrade -f ~/deploy/meshery-cloud/install/environment/staging/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n staging --set=image.tag=$IMAGE_TAG --set-file env.githubAppPrivateKey=./deploy/meshery-cloud/install/environment/staging/github/layer5-cloud-staging.pem --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl            
