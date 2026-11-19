@@ -191,13 +191,28 @@ jobs:
         uses: appleboy/ssh-action@master
         env:
             IMAGE_TAG: ${{ env.IMAGE_TAG }}
+            GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
         with:
           host: ${{ secrets.OCI_BASTION_HOST }}
           username: ${{ secrets.OCI_BASTION_USERNAME }}
           key: ${{ secrets.OCI_BASTION_KEY }}
           port: 22
-          envs: IMAGE_TAG
+          envs: IMAGE_TAG,GH_ACCESS_TOKEN
+          # Deploy layer5io/meshery-cloud master: fetch it by URL, as the production
+          # deploy does, and fail on a checkout with local changes rather than
+          # deploying a stale or modified tree (see #779).
           script: |
+            set -e
+            cd deploy/meshery-cloud
+            if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+              echo "deploy/meshery-cloud has local changes; refusing to deploy a modified checkout:"
+              git status --short --untracked-files=no
+              exit 1
+            fi
+            git fetch "https://l5io:${GH_ACCESS_TOKEN}@github.com/layer5io/meshery-cloud.git" master
+            git checkout -B master FETCH_HEAD
+            git log -1 --oneline
+            cd ../..
             kubectl config use-context staging
             helm upgrade --install -f ~/deploy/meshery-cloud/install/environment/staging/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n staging --set=image.tag=$IMAGE_TAG --set-file env.githubAppPrivateKey=./deploy/meshery-cloud/install/environment/staging/github/layer5-cloud-staging.pem --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl
   prod:
