@@ -329,7 +329,7 @@ jobs:
             <b>WORKFLOW:</b> ${{ github.workflow }}<br />
             <b>JOB:</b> ${{ github.job }}<br />
             <b>REASON:</b> ${{ env.msg }}<br />
-            <b>DETAILS:</b> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}${{ job.status }}">${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}</a><br />
+            <b>DETAILS:</b> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}</a><br />
   
   # kanvas-production-test-release:
   #   needs: release-kanvas

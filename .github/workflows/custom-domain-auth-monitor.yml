@@ -7,7 +7,15 @@
 # dispatch, and unlike its pull-request form it fails for real: on a
 # schedule the question really is "is the deployment still correct?".
 #
-# It carries THREE tiers, all CREDENTIAL-FREE: the custom-domain Hydra
+# It also probes the hosted MCP endpoints (credential-free tier, plus an
+# optional signed-in tier that only runs when a token is configured) in a
+# SEPARATE job, `mcp-monitor`, so the Playwright job's timeout can never
+# blind the MCP probes. They are read-only too. A failed MCP probe emails
+# the MCP alert recipient and still fails the job. Set the Actions variable
+# MCP_SMOKE_REQUIRE_SIGNED_IN to "true" to make an unconfigured signed-in
+# tier a failure instead of a warning.
+#
+# It carries THREE custom-domain/OAuth tiers, all CREDENTIAL-FREE: the custom-domain Hydra
 # legs (TC-104..108, plus the Kratos legs), the OAuth redirect contract
 # (36 cells in the source file's count: 8 /oidc/start, 8 academy-entry, 4
 # enroll-entry, plus the deep-link entry tier at floor 16). The
@@ -17,10 +25,11 @@
 # ones a visitor's browser issues opening the sign-in page, so nothing is
 # created, mutated or deleted.
 #
-# Only `deployed-monitor` leaves the runner, and only the cloud checkout
-# below leaves this repo: the specs and helpers come from
+# Only these two jobs leave the runner, and only the cloud checkouts
+# below leave this repo: the specs and helpers come from
 # layer5io/meshery-cloud at master, sparse-checked out (ui/ plus
-# .github/scripts/) per this repo's sparse-checkout rule for large
+# .github/scripts/ for `deployed-monitor`, install/scripts/smoke-tests for
+# `mcp-monitor`) per this repo's sparse-checkout rule for large
 # checkouts. The roster resolver reads the configured roster, never the
 # report it is about to judge, so a collapsed roster cannot predict the
 # nothing it ran.
@@ -31,6 +40,17 @@ on:
   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
+    inputs:
+      mcp_targets:
+        description: Override of the MCP targets (space or newline separated MCP resource URLs).
+        type: string
+        required: false
+        default: ""
+      subject_prefix:
+        description: Label for test runs, for example "[TEST] ".
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -223,3 +243,159 @@ jobs:
           path: ui/test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  # The hosted MCP endpoints. Its own job so the Playwright job's timeout
+  # (or an npm/browser setup failure) can never hide an MCP outage, and so
+  # no node or browser is installed for a handful of curl probes.
+  # Targets come from the MCP_SMOKE_TARGETS Actions variable (or the
+  # dispatch override); empty means the canonical Cloud endpoint. Every
+  # target runs even if an earlier one fails.
+  mcp-monitor:
+    name: hosted MCP endpoints (monitor)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the smoke scripts
+        uses: actions/checkout@v7
+        with:
+          repository: layer5io/meshery-cloud
+          ref: master
+          fetch-depth: 1
+          path: cloud-smoke
+          sparse-checkout: |
+            install/scripts/smoke-tests
+          sparse-checkout-cone-mode: false
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          persist-credentials: false
+
+      - name: Check out the alert action
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository }}
+          fetch-depth: 1
+          path: alert-action
+          sparse-checkout: |
+            .github/actions/mcp-smoke-alert
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      # No email from here: a missing script is a merge-order problem, and
+      # the probes below are gated on this outcome, so none of them runs
+      # into an opaque exit 127.
+      - name: Require the smoke scripts
+        id: scripts
+        run: |
+          missing=0
+          for f in mcp.sh mcp-signed-in.sh mcp_common.sh; do
+            if [ ! -f "cloud-smoke/install/scripts/smoke-tests/$f" ]; then
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::smoke scripts are missing from layer5io/meshery-cloud master (mcp.sh, mcp-signed-in.sh, mcp_common.sh)"
+            exit 1
+          fi
+
+      - name: Probe the hosted MCP endpoints
+        id: mcp
+        if: ${{ !cancelled() && steps.scripts.outcome == 'success' }}
+        env:
+          TARGETS: ${{ inputs.mcp_targets || vars.MCP_SMOKE_TARGETS }}
+        run: |
+          set -u
+          read -r -a targets <<< "$(printf '%s' "$TARGETS" | tr '\n\r\t' '   ')"
+          if [ "${#targets[@]}" -eq 0 ]; then
+            targets=("https://cloud.layer5.io/mcp")
+          fi
+          failed=""
+          for t in "${targets[@]}"; do
+            echo "::group::mcp.sh $t"
+            rc=0
+            if [[ "$t" =~ ^https?:// ]]; then
+              MCP_URL="$t" bash cloud-smoke/install/scripts/smoke-tests/mcp.sh || rc=$?
+            else
+              echo "target is not an http(s) URL"
+              rc=2
+            fi
+            echo "::endgroup::"
+            if [ "$rc" -ne 0 ]; then
+              echo "::error::MCP probe failed for $t (exit $rc)"
+              failed="${failed}${t} (exit ${rc})"$'\n'
+            fi
+          done
+          {
+            echo "failed<<EOF_FAILED"
+            printf '%s' "$failed"
+            echo "EOF_FAILED"
+          } >> "$GITHUB_OUTPUT"
+          [ -z "$failed" ]
+
+      # Signed-in tier: exit 3 means NOT CONFIGURED (no token), which is a
+      # warning unless the MCP_SMOKE_REQUIRE_SIGNED_IN variable is "true".
+      - name: Probe the hosted MCP endpoints signed in
+        id: mcp-signed-in
+        if: ${{ !cancelled() && steps.scripts.outcome == 'success' }}
+        env:
+          TARGETS: ${{ inputs.mcp_targets || vars.MCP_SMOKE_TARGETS }}
+          REQUIRE_SIGNED_IN: ${{ vars.MCP_SMOKE_REQUIRE_SIGNED_IN == 'true' }}
+          MCP_SMOKE_ACCESS_TOKEN: ${{ secrets.MCP_SMOKE_ACCESS_TOKEN }}
+        run: |
+          set -u
+          if [ -n "$MCP_SMOKE_ACCESS_TOKEN" ]; then
+            echo "::add-mask::$MCP_SMOKE_ACCESS_TOKEN"
+          fi
+          read -r -a targets <<< "$(printf '%s' "$TARGETS" | tr '\n\r\t' '   ')"
+          if [ "${#targets[@]}" -eq 0 ]; then
+            targets=("https://cloud.layer5.io/mcp")
+          fi
+          failed=""
+          unconfigured=0
+          for t in "${targets[@]}"; do
+            echo "::group::mcp-signed-in.sh $t"
+            rc=0
+            if [[ "$t" =~ ^https?:// ]]; then
+              MCP_URL="$t" bash cloud-smoke/install/scripts/smoke-tests/mcp-signed-in.sh || rc=$?
+            else
+              echo "target is not an http(s) URL"
+              rc=2
+            fi
+            echo "::endgroup::"
+            if [ "$rc" -eq 3 ]; then
+              unconfigured=1
+            elif [ "$rc" -ne 0 ]; then
+              echo "::error::signed-in MCP probe failed for $t (exit $rc)"
+              failed="${failed}${t} signed-in (exit ${rc})"$'\n'
+            fi
+          done
+          if [ "$unconfigured" -eq 1 ]; then
+            if [ "$REQUIRE_SIGNED_IN" = "true" ]; then
+              echo "::error::signed-in MCP tier is not configured but is required"
+              failed="${failed}signed-in tier not configured (required)"$'\n'
+            else
+              echo "::warning::signed-in MCP tier is not configured"
+              echo "signed-in MCP tier is not configured (not required)" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          {
+            echo "failed<<EOF_FAILED"
+            printf '%s' "$failed"
+            echo "EOF_FAILED"
+          } >> "$GITHUB_OUTPUT"
+          [ -z "$failed" ]
+
+      # The failing step above already fails the job; this only adds the
+      # email. No email for the custom-domain/OAuth probes (no recipient).
+      - name: Email MCP failure
+        if: ${{ !cancelled() && (steps.mcp.outcome == 'failure' || steps.mcp-signed-in.outcome == 'failure') }}
+        uses: ./alert-action/.github/actions/mcp-smoke-alert
+        with:
+          to: ${{ secrets.MCP_SMOKE_ALERT_EMAIL }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "${{ inputs.subject_prefix }}[GitHub Actions] MCP monitor failure: ${{ steps.mcp.outcome == 'failure' && 'MCP' || 'MCP signed-in' }}"
+          reason: "Scheduled MCP probe failed - MCP: ${{ steps.mcp.outcome }}, MCP signed-in: ${{ steps.mcp-signed-in.outcome }}"
+          failed_checks: |
+            ${{ steps.mcp.outputs.failed }}
+            ${{ steps.mcp-signed-in.outputs.failed }}

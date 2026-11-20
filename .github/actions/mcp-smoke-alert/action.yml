@@ -1,0 +1,90 @@
+name: MCP smoke alert
+description: >-
+  Email a smoke-test failure alert. Call it only from a step whose `if:` is
+  true on a failed check, never on success or skipped runs.
+
+inputs:
+  to:
+    description: Alert recipient. When empty the action fails without sending.
+    required: false
+    default: ""
+  username:
+    description: SMTP username.
+    required: true
+  password:
+    description: SMTP password.
+    required: true
+  subject:
+    description: Email subject.
+    required: true
+  reason:
+    description: Short statement of what failed.
+    required: true
+  failed_checks:
+    description: Optional text listing the failed checks, one per line.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Require an alert recipient
+      shell: bash
+      env:
+        ALERT_TO: ${{ inputs.to }}
+      run: |
+        if [ -z "${ALERT_TO//[[:space:]]/}" ]; then
+          echo "::error::alert recipient is not configured"
+          exit 1
+        fi
+
+    # Alert text can carry values from a probe or an input, and it lands in
+    # an HTML body. Escape it once here and use only these outputs below.
+    - name: Prepare the alert text
+      id: text
+      shell: bash
+      env:
+        REASON: ${{ inputs.reason }}
+        FAILED_CHECKS: ${{ inputs.failed_checks }}
+      run: |
+        set -eu
+        escape() {
+          sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
+        }
+        reason_html="$(printf '%s' "$REASON" | escape)"
+        # Drop blank lines so a caller that joins several optional outputs
+        # does not produce an empty or padded block.
+        failed_trimmed="$(printf '%s\n' "$FAILED_CHECKS" | sed -e '/^[[:space:]]*$/d')"
+        if [ -z "$failed_trimmed" ]; then
+          failed_html="no per-target detail recorded - see the run log"
+        else
+          failed_html="$(printf '%s\n' "$failed_trimmed" | escape)"
+        fi
+        delim="EOF_$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
+        {
+          echo "reason_html<<$delim"
+          printf '%s\n' "$reason_html"
+          echo "$delim"
+          echo "failed_html<<$delim"
+          printf '%s\n' "$failed_html"
+          echo "$delim"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Send the alert
+      uses: dawidd6/action-send-mail@v6
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+        subject: ${{ inputs.subject }}
+        from: |
+          "Layer5 Cloud" <no-reply@layer5.io>
+        to: ${{ inputs.to }}
+        html_body: |
+          <b>REPO:</b> ${{ github.repository }}<br />
+          <b>WORKFLOW:</b> ${{ github.workflow }}<br />
+          <b>JOB:</b> ${{ github.job }}<br />
+          <b>REASON:</b> ${{ steps.text.outputs.reason_html }}<br />
+          ${{ inputs.failed_checks != '' && format('<b>FAILED CHECKS:</b><br /><pre>{0}</pre>', steps.text.outputs.failed_html) || '' }}
+          <b>DETAILS:</b> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}</a><br />
