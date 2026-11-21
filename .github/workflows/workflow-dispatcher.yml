@@ -32,3 +32,16 @@ jobs:
       OCI_BASTION_KEY: ${{ secrets.OCI_BASTION_KEY }}
       MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
       MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+
+  post-deploy-smoke:
+    needs: meshery-cloud-deploy
+    if: ${{ github.event.action == 'meshery-cloud-deploy' && github.event.client_payload.release_environment == 'production' && needs.meshery-cloud-deploy.result == 'success' }}
+    uses: meshery-extensions/meshery-extensions-packages/.github/workflows/meshery-cloud-post-deploy-smoke.yml@master
+    with:
+      release-version: ${{ github.event.client_payload.release_version }}
+    secrets:
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+      MCP_SMOKE_ALERT_EMAIL: ${{ secrets.MCP_SMOKE_ALERT_EMAIL }}
+      MCP_SMOKE_ACCESS_TOKEN: ${{ secrets.MCP_SMOKE_ACCESS_TOKEN }}
