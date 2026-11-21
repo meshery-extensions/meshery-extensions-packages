@@ -88,7 +88,7 @@ permissions:
   contents: read
 
 # A newer release supersedes an older run still waiting on its rollout.
-concurrency:
+  group: cloud-post-deploy-smoke-${{ github.event_name }}-${{ inputs.base_url }}
   group: cloud-post-deploy-smoke
   cancel-in-progress: true
 
