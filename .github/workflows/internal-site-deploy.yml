@@ -1,0 +1,265 @@
+name: Internal site deploy
+
+# Owns the paid Actions run that publishes https://internal.layer5.io/
+# for meshery-extensions/meshery-extensions-packages (public intermediary).
+#
+# Private layer5io/meshery-cloud and layer5labs/meshery-extensions must NOT
+# workflow_call this file across repos (that bills the private caller). They
+# emit repository_dispatch event deploy-internal-site to this repo (routed by
+# workflow-dispatcher.yml) or operators use workflow_dispatch here.
+#
+# Private source is fetched ephemerally onto the runner only after Cloudflare
+# Access is default-deny. No artifacts, no caches of docs content, no set -x,
+# no directory dumps. Debug failed Hugo builds with make site-internal-build
+# on a trusted machine that already has the trees — never by printing them here.
+#
+# Required Environment "internal-site" secrets on THIS repo (place sanctioned
+# values; do not copy from private logs):
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+#   INTERNAL_ACCESS_EXTRA_EMAILS
+#   MESHERY_EXTENSIONS_INTERNAL_READ_KEY  (read-only deploy key: layer5labs/meshery-extensions)
+#   MESHERY_CLOUD_INTERNAL_READ_KEY       (read-only deploy key: layer5io/meshery-cloud)
+# Repository variable INTERNAL_SITE_ENABLED must be "true".
+
+on:
+  workflow_dispatch:
+    inputs:
+      cloud_ref:
+        description: layer5io/meshery-cloud ref (branch, tag, or SHA)
+        required: false
+        default: master
+      extensions_ref:
+        description: layer5labs/meshery-extensions ref (branch, tag, or SHA)
+        required: false
+        default: master
+      dry_run:
+        description: If true, Access+build+guards only; skip Wrangler deploy
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      cloud_ref:
+        required: false
+        type: string
+        default: master
+      extensions_ref:
+        required: false
+        type: string
+        default: master
+      dry_run:
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # Replaces the private meshery-cloud daily cron for this job.
+    - cron: '23 11 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internal-site
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: Build and deploy behind Cloudflare Access
+    if: vars.INTERNAL_SITE_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: internal-site
+      url: https://internal.layer5.io/
+    env:
+      # Cloudflare secrets are NOT job-level: each is scoped to the steps
+      # that need it, so setup/install/build steps never see them.
+      HAS_EXT_KEY: ${{ secrets.MESHERY_EXTENSIONS_INTERNAL_READ_KEY != '' }}
+      HAS_CLOUD_KEY: ${{ secrets.MESHERY_CLOUD_INTERNAL_READ_KEY != '' }}
+      CLOUD_REF: ${{ inputs.cloud_ref || github.event.client_payload.cloud_ref || 'master' }}
+      EXTENSIONS_REF: ${{ inputs.extensions_ref || github.event.client_payload.extensions_ref || 'master' }}
+      DRY_RUN: ${{ inputs.dry_run || github.event.client_payload.dry_run || false }}
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - name: Refuse runner debug before private fetch
+        run: |
+          if [ "${RUNNER_DEBUG:-}" = "1" ] || [ "${ACTIONS_RUNNER_DEBUG:-}" = "true" ] || [ "${ACTIONS_STEP_DEBUG:-}" = "true" ]; then
+            echo "::error::Runner/step debug is enabled; refusing to fetch private content."
+            exit 1
+          fi
+          echo "repository=${GITHUB_REPOSITORY}"
+          test "$GITHUB_REPOSITORY" = "meshery-extensions/meshery-extensions-packages" || {
+            echo "::error::This workflow must run as meshery-extensions/meshery-extensions-packages (billing/run identity)."
+            exit 1
+          }
+
+      - name: Check credentials are configured
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          INTERNAL_ACCESS_EXTRA_EMAILS: ${{ secrets.INTERNAL_ACCESS_EXTRA_EMAILS }}
+        run: |
+          missing=()
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || missing+=(CLOUDFLARE_API_TOKEN)
+          [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || missing+=(CLOUDFLARE_ACCOUNT_ID)
+          [ -n "$INTERNAL_ACCESS_EXTRA_EMAILS" ] || missing+=(INTERNAL_ACCESS_EXTRA_EMAILS)
+          [ "$HAS_EXT_KEY" = true ] || missing+=("MESHERY_EXTENSIONS_INTERNAL_READ_KEY (internal-site environment)")
+          [ "$HAS_CLOUD_KEY" = true ] || missing+=("MESHERY_CLOUD_INTERNAL_READ_KEY (internal-site environment)")
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Not configured on meshery-extensions/meshery-extensions-packages Environment internal-site: ${missing[*]}. Nothing was built or deployed."
+            exit 1
+          fi
+
+
+      - name: Allowlist cloud_ref and extensions_ref
+        env:
+          CLOUD_REF: ${{ env.CLOUD_REF }}
+          EXTENSIONS_REF: ${{ env.EXTENSIONS_REF }}
+        run: |
+          # Only default-branch names or full 40-char SHAs. No PR heads, forks, or tags.
+          allow_ref() {
+            local name="$1" val="$2"
+            if [[ "$val" =~ ^(master|main)$ ]]; then return 0; fi
+            if [[ "$val" =~ ^[0-9a-f]{40}$ ]]; then return 0; fi
+            echo "::error::$name='$val' is not an allowlisted ref (master|main|40-char SHA)."
+            exit 1
+          }
+          allow_ref CLOUD_REF "$CLOUD_REF"
+          allow_ref EXTENSIONS_REF "$EXTENSIONS_REF"
+          echo "refs ok cloud=$CLOUD_REF extensions=$EXTENSIONS_REF"
+
+      # Tooling only (Makefile/scripts/worker config). No docs/ yet.
+      - name: Check out meshery-cloud internal-site tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: layer5io/meshery-cloud
+          ref: ${{ env.CLOUD_REF }}
+          ssh-key: ${{ secrets.MESHERY_CLOUD_INTERNAL_READ_KEY }}
+          persist-credentials: false
+          fetch-depth: 1
+          path: cloud
+          sparse-checkout: |
+            internal-site
+
+      - name: Check Cloudflare API token permissions
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: make -C cloud/internal-site site-internal-access-check
+
+      - name: Create or update the Cloudflare Access application (default-deny)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          INTERNAL_ACCESS_EXTRA_EMAILS: ${{ secrets.INTERNAL_ACCESS_EXTRA_EMAILS }}
+        run: make -C cloud/internal-site site-internal-access
+
+      # Docs after Access is confirmed default-deny.
+      - name: Check out meshery-cloud docs content
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: layer5io/meshery-cloud
+          ref: ${{ env.CLOUD_REF }}
+          ssh-key: ${{ secrets.MESHERY_CLOUD_INTERNAL_READ_KEY }}
+          persist-credentials: false
+          fetch-depth: 1
+          path: cloud
+          sparse-checkout: |
+            internal-site
+            docs
+
+      - name: Check out layer5labs/meshery-extensions internal content
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: layer5labs/meshery-extensions
+          ref: ${{ env.EXTENSIONS_REF }}
+          ssh-key: ${{ secrets.MESHERY_EXTENSIONS_INTERNAL_READ_KEY }}
+          persist-credentials: false
+          fetch-depth: 1
+          path: cloud/internal-site/.internal-src/meshery-extensions
+          sparse-checkout: internal
+
+      - name: Make sure the extensions content folder exists
+        run: |
+          dir=cloud/internal-site/.internal-src/meshery-extensions/internal
+          if [ ! -d "$dir" ]; then
+            echo "::warning::layer5labs/meshery-extensions has no internal/ folder at this ref; building meshery-cloud docs alone."
+            mkdir -p "$dir"
+          fi
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: cloud/internal-site/go.mod
+          cache: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: cloud/internal-site/.nvmrc
+          cache: false
+
+      - name: Install dependencies
+        run: make -C cloud/internal-site setup
+
+      - name: Build the internal site (output suppressed)
+        run: |
+          # Hugo mounts ../docs from internal-site/; tree is cloud/{internal-site,docs}.
+          if ! make -C cloud/internal-site site-internal-build BASE_URL=https://internal.layer5.io/ >/dev/null 2>&1; then
+            echo "::error::The internal build failed. Output suppressed because the build reads private content; reproduce locally with make site-internal-build."
+            exit 1
+          fi
+          test -f cloud/internal-site/public/marketing/index.html || { echo "::error::The internal build produced no Marketing section (docs/ sparse cone missing?)."; exit 1; }
+          test -d cloud/internal-site/public/engineering/prod-oauth-kratos-fix || echo "::warning::Kratos engineering archive page missing."
+          test -d cloud/internal-site/public/engineering/user-consolidation-clis || echo "::warning::CLI consolidation archive page missing."
+          pages="$(find cloud/internal-site/public -name '*.html' | wc -l | tr -d ' ')"
+          echo "Built $pages HTML pages."
+          rm -rf cloud/internal-site/.internal-src
+
+      - name: Deploy to the layer5-internal Worker
+        if: env.DRY_RUN != 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: make -C cloud/internal-site site-internal-worker-deploy
+
+      - name: Verify unauthenticated requests get the Access login
+        if: env.DRY_RUN != 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            set +e
+            cloud/internal-site/scripts/internal-verify.sh
+            rc=$?
+            set -e
+            [ "$rc" -eq 0 ] && break
+            if [ "$rc" -eq 2 ]; then
+              echo "::error::internal.layer5.io served a page without Access; deleting the Worker."
+              if ! (cd cloud/internal-site/worker && npx --yes wrangler@4.151.3 delete --force); then
+                echo "::error::Failed to delete the Worker. internal.layer5.io may still be serving the page."
+                exit 1
+              fi
+              echo "::error::Deleted the Worker because an unauthenticated request was served a page."
+              exit 1
+            fi
+            [ "$attempt" -lt 10 ] || exit 1
+            sleep 30
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Internal site (packages-owned run)"
+            echo "- Repository: \`$GITHUB_REPOSITORY\`"
+            echo "- Host: https://internal.layer5.io/ (Cloudflare Access)"
+            echo "- Cloud ref: \`$CLOUD_REF\`"
+            echo "- Extensions ref: \`$EXTENSIONS_REF\`"
+            echo "- Dry run: \`$DRY_RUN\`"
+            echo "- Result: ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          rm -rf cloud/internal-site/public cloud/internal-site/resources cloud/internal-site/.internal-src cloud/docs || true
