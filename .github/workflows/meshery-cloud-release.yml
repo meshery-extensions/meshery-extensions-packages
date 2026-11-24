@@ -35,6 +35,14 @@ on:
         required: true
       MAIL_PASSWORD:
         required: true
+      # Support cases (layer5io/meshery-cloud#6533): the HMAC key for case
+      # management tokens and the PAT that opens issues and uploads diagnostics
+      # in blowhorn-ai/blowhorn. Optional: unset renders empty and the Cloud
+      # routes fail closed.
+      SUPPORT_CASE_TOKEN_SECRET:
+        required: false
+      SUPPORT_FEEDBACK_GITHUB_TOKEN:
+        required: false
 
   workflow_dispatch:
     inputs:
@@ -290,13 +298,15 @@ jobs:
       env:
           GIT_VERSION: ${{inputs.release-environment}}-${{inputs.release-version}}
           GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          SUPPORT_CASE_TOKEN_SECRET: ${{ secrets.SUPPORT_CASE_TOKEN_SECRET }}
+          SUPPORT_FEEDBACK_GITHUB_TOKEN: ${{ secrets.SUPPORT_FEEDBACK_GITHUB_TOKEN }}
       with:
         host: ${{ secrets.OCI_BASTION_HOST }}
         username: ${{ secrets.OCI_BASTION_USERNAME }}
         key: ${{ secrets.OCI_BASTION_KEY }}
         port: 22
         envs: 
-            GIT_VERSION, GH_ACCESS_TOKEN
+            GIT_VERSION, GH_ACCESS_TOKEN, SUPPORT_CASE_TOKEN_SECRET, SUPPORT_FEEDBACK_GITHUB_TOKEN
         # It is important to use bash, specifically so that git works
         # and can use the GH_ACCESS_TOKEN env var properly
         script: |
@@ -306,7 +316,9 @@ jobs:
           cd deploy/meshery-cloud && git pull https://l5io:$GH_ACCESS_TOKEN@github.com/layer5io/meshery-cloud.git master
           cd ../..
           kubectl config use-context prod
-          helm upgrade --install -f ~/deploy/meshery-cloud/install/environment/production/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n cloud --set=image.tag=$GIT_VERSION --set-file env.githubAppPrivateKey=./deploy/meshery-cloud/install/environment/production/github/production.pem --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl
+          # The chart renders both support-case keys into its Secret only; they come from
+          # repo secrets on every deploy so a release never blanks them (#6545).
+          helm upgrade --install -f ~/deploy/meshery-cloud/install/environment/production/values.yaml cloud ~/deploy/meshery-cloud/install/kubernetes/helm/layer5-cloud/ -n cloud --set=image.tag=$GIT_VERSION --set-file env.githubAppPrivateKey=./deploy/meshery-cloud/install/environment/production/github/production.pem --set-file 'kratos.kratos.emailTemplates.recovery.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-recover-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.recovery.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-recover.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.subject'=./deploy/meshery-cloud/config/email-templates/valid/email-verify-subject.body.gotmpl --set-file 'kratos.kratos.emailTemplates.verification.valid.body'=./deploy/meshery-cloud/config/email-templates/valid/email-verify.body.gotmpl --set-string env.supportCaseTokenSecret="$SUPPORT_CASE_TOKEN_SECRET" --set-string env.supportFeedbackGithubToken="$SUPPORT_FEEDBACK_GITHUB_TOKEN"
 
     - name: Send Email on Cloud Release Failure
       if: ${{ failure() }}
